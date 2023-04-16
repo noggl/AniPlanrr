@@ -16,7 +16,8 @@ else:
     SONARRAPIKEY = os.environ['SONARRAPIKEY']
     ANILIST_USERNAME = os.environ['ANILIST_USERNAME']
     MONITOR_ALL = os.environ['MONITOR_ALL']
-    # Since No ENV file was found, print the variables
+
+LOGGING=False
 
 def getAniList(username,format):
     query = query = """
@@ -102,7 +103,7 @@ def add_show_to_sonarr(title, tvdb_id,tag):
     if response.status_code == 201:
         print(title + " was added to Sonarr")
     else:
-        print("Error: " + title + " was not added to Sonarr")
+        print("ERRROR: " + title + " could not be added to Sonarr")
 
 def get_id_from_sonarr(title, year):
     search_string = title.replace(' ', '%20') + '%20' + str(year)
@@ -113,7 +114,7 @@ def get_id_from_sonarr(title, year):
         return [response.json()[0]['title'], response.json()[0]['tvdbId'],response.json()[0]['seasons']]
     else:
         #print the two titles
-        print(str(title) + " and " + str(response.json()[0]['title']).lower() + " dont match")
+        print("ERROR: " + str(title) + " and " + str(response.json()[0]['title']).lower() + " dont match")
 
 def getTagId(tag_name):
     params = {
@@ -140,17 +141,16 @@ else:
     
 
 anilist = getAniList(str(ANILIST_USERNAME), "TV");
-#write anilist to file
-with open('anilist.json', 'w') as outfile:
-    json.dump(anilist, outfile)
 sonarrlist = getSonarrSeries(SONARRURL, SONARRAPIKEY);
-#write Sonarrlist to sonarrlist.json
-with open('sonarrlist.json', 'w') as outfile:
-    json.dump(sonarrlist, outfile)
 newShows = getListDifference(anilist, sonarrlist);
-#write newShows to newShows.json
-with open('newShows.json', 'w') as outfile:
-    json.dump(newShows, outfile)
+
+if LOGGING:
+    with open('newShows.json', 'w') as outfile:
+        json.dump(newShows, outfile)
+    with open('sonarrlist.json', 'w') as outfile:
+        json.dump(sonarrlist, outfile)
+    with open('anilist.json', 'w') as outfile:
+        json.dump(anilist, outfile)
 
 tag=getTagId("fromanilist")
 
