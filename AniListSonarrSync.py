@@ -94,7 +94,14 @@ def getAniList(username,format):
     url = 'https://graphql.anilist.co'
     # Make the HTTP Api request
     response = requests.post(url, json={'query': query, 'variables': variables})
-    entries = response.json()['data']['MediaListCollection']['lists'][3];
+    # find id of list with name "planned"
+    planned_id = next((index for (index, d) in enumerate(response.json()['data']['MediaListCollection']['lists']) if d["name"] == "Planning"), None)
+    entries = response.json()['data']['MediaListCollection']['lists'][planned_id];
+    
+    #if name is not Planned, throw error
+    if entries['name'] != "Planning":
+        print("Error: List name is not Planning")
+        return
     # Create list of titles - year objects
     titleYearList = []
     for entry in entries['entries']:
