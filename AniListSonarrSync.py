@@ -3,6 +3,7 @@ import requests
 import json
 import os
 from dotenv import load_dotenv
+import re
 
 #check if there is a .env file
 if os.path.exists('.env'):
@@ -10,7 +11,7 @@ if os.path.exists('.env'):
     SONARRURL = os.getenv('SONARRURL')
     SONARRAPIKEY = os.getenv('SONARRAPIKEY')
     ANILIST_USERNAME = os.getenv('ANILIST_USERNAME')
-    MONITOR_ALL = os.getenv('MONITOR_ALL')
+    MONITOR = os.getenv('MONITOR_ALL')
 else:
     SONARRURL = os.environ['SONARRURL']
     SONARRAPIKEY = os.environ['SONARRAPIKEY']
@@ -18,6 +19,9 @@ else:
     MONITOR_ALL = os.environ['MONITOR_ALL']
 
 LOGGING=False
+
+def cleanText(string):
+    return re.sub(r'[^\w\s]', '', str(string)).lower()
 
 def getAniList(username,format):
     query = query = """
@@ -59,9 +63,9 @@ def getAniList(username,format):
     for entry in entries['entries']:
         if entry['media']['format'] == format:
             if entry['media']['title']['english'] is not None:
-                titleYearList.append([entry['media']['title']['english'].lower(), entry['media']['startDate']['year']])
+                titleYearList.append([cleanText(entry['media']['title']['english']), entry['media']['startDate']['year']])
             else:
-                titleYearList.append([entry['media']['title']['romaji'].lower(), entry['media']['startDate']['year']])
+                titleYearList.append([cleanText(entry['media']['title']['romaji']), entry['media']['startDate']['year']])
     return titleYearList
 
 def getSonarrSeries(SONARRURL, SONARRAPIKEY):
@@ -72,7 +76,7 @@ def getSonarrSeries(SONARRURL, SONARRAPIKEY):
     for i in response.json():
         #if seriesType=anime
         if i['seriesType'] == "anime":
-            seriesList.append([i['title'].lower(), i['year']])
+            seriesList.append([cleanText(i['title'].lower()), i['year']])
     return seriesList
 
 def getListDifference(list1, list2):
@@ -105,16 +109,18 @@ def add_show_to_sonarr(title, tvdb_id,tag):
     else:
         print("ERRROR: " + title + " could not be added to Sonarr")
 
+
 def get_id_from_sonarr(title, year):
     search_string = title.replace(' ', '%20') + '%20' + str(year)
     #print(search_string)
     response = requests.get(
         SONARRURL + 'series/lookup?apikey=' + SONARRAPIKEY + '&term=' + search_string)
-    if response.json()[0]['title'].lower() == title:
+    sonarrTitle=cleanText(response.json()[0]['title'])
+    if sonarrTitle == title.lower():
         return [response.json()[0]['title'], response.json()[0]['tvdbId'],response.json()[0]['seasons']]
     else:
         #print the two titles
-        print("ERROR: " + str(title) + " and " + str(response.json()[0]['title']).lower() + " dont match")
+        print("ERROR: " + str(title) + " and " + sonarrTitle + " dont match")
 
 def getTagId(tag_name):
     params = {
@@ -139,28 +145,42 @@ if os.path.exists('.env'):
 else:
     print("No .env file found, loading variables from environment")
     
+def main():
+    if LOGGING:
+            print("Getting AniList for " + ANILIST_USERNAME)
+    anilist = getAniList(str(ANILIST_USERNAME), "TV");
+    if LOGGING:
+            print("Getting Sonarr List")
+    sonarrlist = getSonarrSeries(SONARRURL, SONARRAPIKEY);
+    newShows = getListDifference(anilist, sonarrlist);
+    if LOGGING:
+            print("Found " + str(len(newShows)) + " new shows to add to Sonarr")
 
-anilist = getAniList(str(ANILIST_USERNAME), "TV");
-sonarrlist = getSonarrSeries(SONARRURL, SONARRAPIKEY);
-newShows = getListDifference(anilist, sonarrlist);
+    if LOGGING:
+        with open('newShows.json', 'w') as outfile:
+            json.dump(newShows, outfile)
+        with open('sonarrlist.json', 'w') as outfile:
+            json.dump(sonarrlist, outfile)
+        with open('anilist.json', 'w') as outfile:
+            json.dump(anilist, outfile)
 
-if LOGGING:
-    with open('newShows.json', 'w') as outfile:
-        json.dump(newShows, outfile)
-    with open('sonarrlist.json', 'w') as outfile:
-        json.dump(sonarrlist, outfile)
-    with open('anilist.json', 'w') as outfile:
-        json.dump(anilist, outfile)
+    tag=getTagId("fromanilist")
 
-tag=getTagId("fromanilist")
+    #send each item in newShows to get_id_from_sonarr
+    tvdblist = []
+    for show in newShows:
+        if LOGGING:
+            print("Looking for ID for " + show[0])
+        tmp = get_id_from_sonarr(show[0], show[1])
+        if tmp is not None:
+            tvdblist.append(tmp)
 
-#send each item in newShows to get_id_from_sonarr
-tvdblist = []
-for show in newShows:
-    tmp = get_id_from_sonarr(show[0], show[1])
-    if tmp is not None:
-        tvdblist.append(tmp)
+    #send each item in tvdblist to add_show_to_sonarr
+    for show in tvdblist:
+        if LOGGING:
+            print("Adding " + show[0] + "to Sonarr")
+        add_show_to_sonarr(show[0],show[1],tag)
 
-#send each item in tvdblist to add_show_to_sonarr
-for show in tvdblist:
-    add_show_to_sonarr(show[0],show[1],tag)
+if __name__ == "__main__":
+    main()
+    print("Sync Completed")
