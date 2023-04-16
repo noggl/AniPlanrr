@@ -6,6 +6,16 @@ import os
 from dotenv import load_dotenv
 import re
 
+# Set all Variables to None initially
+SONARRURL = None
+SONARRAPIKEY = None
+RADARRURL = None
+RADARRAPIKEY = None
+ANILIST_USERNAME = None
+MONITOR = None
+RETRY = None
+LOGGING = None
+
 #check if there is a .env file
 if os.path.exists('.env'):
     load_dotenv()
@@ -18,15 +28,14 @@ if os.path.exists('.env'):
     RADARRURL = os.getenv('RADARRURL')
     RADARRAPIKEY = os.getenv('RADARRAPIKEY')
 else:
-    SONARRURL = os.environ['SONARRURL']
-    SONARRAPIKEY = os.environ['SONARRAPIKEY']
+    if 'SONARRURL' in os.environ: SONARRURL = os.environ['SONARRURL']
+    if 'SONARRAPIKEY' in os.environ: SONARRAPIKEY = os.environ['SONARRAPIKEY']
+    if 'RADARRURL' in os.environ: RADARRURL = os.environ['RADARRURL']
+    if 'RADARRAPIKEY' in os.environ: RADARRAPIKEY = os.environ['RADARRAPIKEY']
+    if 'LOGGING' in os.environ: LOGGING=os.environ['LOGGING']
     ANILIST_USERNAME = os.environ['ANILIST_USERNAME']
     MONITOR = os.environ['MONITOR']
     RETRY = os.environ['RETRY']
-    LOGGING=os.environ['LOGGING']
-    RADARRURL = os.environ['RADARRURL']
-    RADARRAPIKEY = os.environ['RADARRAPIKEY']
-
 
 #if logging is true
 if LOGGING is not None:
@@ -317,43 +326,25 @@ def getRadarrTagId(tag_name):
             tag_id = response.json()['id']
     return tag_id
 
-if os.path.exists('.env'):
-    print("Found .env file, loading variables")
-else:
-    print("No .env file found, loading variables from environment")
-    
-def main():
-    if LOGGING:
-            print("Getting AniList for " + ANILIST_USERNAME)
-    [anilist,animovielist] = getAniList(str(ANILIST_USERNAME));
-    #filter anilist if anilist[2] is in ignorelist
-    anilist = [x for x in anilist if x[2] not in ignoreList]
-    if LOGGING:
-            print("Getting Sonarr List")
-    sonarrlist = getSonarrSeries(SONARRURL, SONARRAPIKEY);
-    if LOGGING:
-        print("Getting Radarr List")
-    radarrlist = getRadarrMovies(RADARRURL, RADARRAPIKEY);
-    newShows = getListDifference(anilist, sonarrlist);
-    newMovies = getListDifference(animovielist, radarrlist);
-    if LOGGING:
-            print("Found " + str(len(newShows)) + " new shows to add to Sonarr")
-            print("Found " + str(len(newMovies)) + " new movies to add to Radarr")
-    if LOGGING:
-        with open('newShows.json', 'w') as outfile:
-            json.dump(newShows, outfile)
-        with open('sonarrlist.json', 'w') as outfile:
-            json.dump(sonarrlist, outfile)
-        with open('anilist.json', 'w') as outfile:
-            json.dump(anilist, outfile)
-        with open('ignorelist.json', 'w') as outfile:
-            json.dump(ignoreList, outfile)
-        with open('mapping.json', 'w') as outfile:
-            json.dump(mapping, outfile)
-    sonarrTag=getSonarrTagId("fromanilist")
-    radarrTag=getRadarrTagId("fromanilist")
+def sendToRadarr(newMovies,mapping,radarrTag):
+    moviedblist = []
+    for movie in newMovies:
+        if LOGGING:
+            print("Looking for ID for " + movie[0])
+        if movie[2] in [i[1] for i in mapping]:
+            map=mapping[[i[1] for i in mapping].index(movie[2])]
+            print(movie[0] + " is mapped to " + str(map[2]) + " season " + str(map[3]))
+            moviedblist.append([map[0],map[2],map[3]])
+        else:
+            tmp = get_id_from_radarr(movie[0], movie[1], movie[2])
+            if tmp is not None:
+                print("ID received from radarr " + movie[0])
+                moviedblist.append(tmp)
 
-    #send each item in newShows to get_id_from_sonarr
+    for movie in moviedblist:
+        add_movie_to_radarr(movie[0],movie[1],radarrTag)
+
+def sendToSonarr(newShows,mapping,sonarrTag,sonarrlist):
     tvdblist = []
     for show in newShows:
         if LOGGING:
@@ -367,7 +358,6 @@ def main():
             if tmp is not None:
                 print("ID received from sonarr " + show[0])
                 tvdblist.append(tmp)
-
     #if id is in sonarrlist's third object, add to ignorelist
     for show in tvdblist:
         if show[1] in [i[2] for i in sonarrlist]:
@@ -386,23 +376,33 @@ def main():
             add_show_to_sonarr(show[0],show[1],sonarrTag,show[2])
         else:
             add_show_to_sonarr(show[0],show[1],sonarrTag)
-
-    moviedblist = []
-    for movie in newMovies:
-        if LOGGING:
-            print("Looking for ID for " + movie[0])
-        if movie[2] in [i[1] for i in mapping]:
-            map=mapping[[i[1] for i in mapping].index(movie[2])]
-            print(movie[0] + " is mapped to " + str(map[2]) + " season " + str(map[3]))
-            moviedblist.append([map[0],map[2],map[3]])
-        else:
-            tmp = get_id_from_radarr(movie[0], movie[1], movie[2])
-            if tmp is not None:
-                print("ID received from radarr " + movie[0])
-                moviedblist.append(tmp)
-
-    for movie in moviedblist:
-        add_movie_to_radarr(movie[0],movie[1],radarrTag)
+            
+if os.path.exists('.env'):
+    print("Found .env file, loading variables")
+else:
+    print("No .env file found, loading variables from environment")
+    
+def main():
+    if LOGGING: print("Getting AniList for " + ANILIST_USERNAME)
+    [anilist,animovielist] = getAniList(str(ANILIST_USERNAME));
+    #filter anilist if anilist[2] is in ignorelist
+    anilist = [x for x in anilist if x[2] not in ignoreList]
+    #animovielist = [x for x in animovielist if x[2] not in ignoreList]
+    if SONARRURL:
+        if LOGGING: print("Getting Sonarr List")
+        sonarrlist = getSonarrSeries(SONARRURL, SONARRAPIKEY);
+        newShows = getListDifference(anilist, sonarrlist);
+        sonarrTag=getSonarrTagId("fromanilist")
+        if LOGGING: print("Found " + str(len(newShows)) + " new shows to add to Sonarr")
+        #send each item in newShows to get_id_from_sonarr
+        sendToSonarr(newShows,mapping,sonarrTag,sonarrlist)
+    if RADARRURL:
+        if LOGGING: print("Getting Radarr List")
+        radarrlist = getRadarrMovies(RADARRURL, RADARRAPIKEY);
+        newMovies = getListDifference(animovielist, radarrlist);
+        if LOGGING: print("Found " + str(len(newMovies)) + " new movies to add to Radarr")
+        radarrTag=getRadarrTagId("fromanilist")
+        sendToRadarr(newMovies,mapping,radarrTag)
 
 if __name__ == "__main__":
     main()
