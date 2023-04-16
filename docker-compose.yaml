@@ -9,6 +9,6 @@ services:
       - SONARRAPIKEY=your_api_key
       - ANILIST_USERNAME=yourname
       - MONITOR_ALL=True
-      - INTERVAL=60
+      - INTERVAL=3600
     volumes:
       - '/etc/localtime:/etc/localtime:ro'
