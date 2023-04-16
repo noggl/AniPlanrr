@@ -1,4 +1,5 @@
 # Here we define our query as a multi-line string
+import time
 import requests
 import json
 import os
@@ -42,7 +43,7 @@ if os.path.exists('mapping.csv'):
     with open('mapping.csv', 'r') as f:
         for line in f:
             arr = line.strip().split(';')
-            mapping.append([int(arr[1]),int(arr[2])])
+            mapping.append([arr[0],int(arr[1]),int(arr[2]),int(arr[3])])
 
 def addToIgnoreList(title, id):
     #if id isn't already in ignorelist
@@ -123,7 +124,7 @@ def getSonarrSeries(SONARRURL, SONARRAPIKEY):
         if i['seriesType'] == "anime":
             with open('serie.json', 'w') as outfile:
                 json.dump(i, outfile)
-            seriesList.append([cleanText(i['title'].lower()), i['year'],i['tvdbId']])
+            seriesList.append([cleanText(i['title'].lower()), i['year'],i['tvdbId'],i['id'],i['path'],i['seasons']])
     return seriesList
 
 def getListDifference(list1, list2):
@@ -140,33 +141,46 @@ def getListDifference(list1, list2):
     return [list1[i] for i in diff]
     
 
-def add_show_to_sonarr(title,tvdb_id,tag):
-    #if Monitor All is true, set monitored to true
-    if MONITOR == "true":
-        monitored = "all"
-    else:
-        monitored = "pilot"
+def add_show_to_sonarr(title,tvdb_id,tag,season=None):
+    print("Adding " + title + " to Sonarr")
     params = {
         'tvdbId': tvdb_id,
         'title': title,
         'profileId': 1,
         'seriesType': 'Anime',
         'path': '/tv/Anime/' + title,
-        'monitored': 'true',
         'seasonFolder': 'true',
-        'tags': [tag],
-        'addOptions': {'monitor': MONITOR, "searchForMissingEpisodes": 'false'}
+        'tags': [tag]
     }
+    if season is not None:
+        print("adding unmonitored, season will be updated later")
+        params['seasons'] = [{
+        'seasonNumber': season,
+        'monitored': 'true'
+    }]
+        params['addOptions']= {'monitor': 'none', "searchForMissingEpisodes": 'true'}
+    else:
+        params['addOptions']= {'monitor': MONITOR, "searchForMissingEpisodes": 'true'}
+
     #write params to file
-    if LOGGING:
-        with open('params.json', 'w') as outfile:
+    with open('params.json', 'w') as outfile:
             json.dump(params, outfile)
     response = requests.post(SONARRURL + 'series?apikey=' + SONARRAPIKEY, data=str(params).encode('utf-8'))
     # If resposne is 201, print success
     if response.status_code == 201:
         print(title + " was added to Sonarr")
+        if season is not None:
+            entry=response.json()
+            #wait for 10 seconds
+            time.sleep(4)
+            updateSonarrSeason(entry['title'],entry['tvdbId'],season,entry['id'],entry['path'],entry['tags'])
     else:
         print("ERRROR: " + title + " could not be added to Sonarr")
+        #write response to file
+        with open('response.json', 'w') as outfile:
+            json.dump(response.json(), outfile)
+        #print response.errorMessage
+        
 
 
 def get_id_from_sonarr(title, year,anidb_id):
@@ -179,10 +193,38 @@ def get_id_from_sonarr(title, year,anidb_id):
         return [response.json()[0]['title'], response.json()[0]['tvdbId']]
     else:
         #print the two titles
-        print("TVDB ID " + str(response.json()[0]['tvdbId']) + " seems wrong for " + title)
+        print("TVDB ID " + str(response.json()[0]['tvdbId']) + "(" + cleanText(response.json()[0]['title']) + ") seems wrong for " + title)
         #append to error file with newline if not first line
         if RETRY == "False":
             addToIgnoreList(title, anidb_id)
+
+def updateSonarrSeason(title,tvdb_id,season,sonarrid,sonarrpath,tags=None):
+    print("Adding " + title + " season " + str(season) + " to Sonarr")
+    params = {
+    'id': sonarrid,
+    'tvdbId': tvdb_id,
+    'profileId': 1,
+    'path': sonarrpath,
+    'seriesType': 'Anime',
+    'seasons': [{
+        'seasonNumber': season,
+        'monitored': 'true'
+    }],
+    'addOptions': {'searchForMissingEpisodes': 'false'}
+    }
+    if tags is not None:
+        params['tags'] = tags
+    response = requests.put(SONARRURL + 'series/' + str(sonarrid) + '?apikey=' + SONARRAPIKEY, data=str(params).encode('utf-8'))
+    # If resposne is 201, print success
+    if response.status_code == 202:
+        print(title + " season " + str(season) + " was added to Sonarr")
+    else:
+        print("ERRROR: " + title + " season " + str(season) + " could not be added to Sonarr")
+        #write response to file
+        with open('response.json', 'w') as outfile:
+            json.dump(response.json(), outfile)
+        #print response.errorMessage
+
 
 
 def getTagId(tag_name):
@@ -220,7 +262,6 @@ def main():
     newShows = getListDifference(anilist, sonarrlist);
     if LOGGING:
             print("Found " + str(len(newShows)) + " new shows to add to Sonarr")
-
     if LOGGING:
         with open('newShows.json', 'w') as outfile:
             json.dump(newShows, outfile)
@@ -240,21 +281,36 @@ def main():
     for show in newShows:
         if LOGGING:
             print("Looking for ID for " + show[0])
-        if show[2] in [i[0] for i in mapping]:
-            id=mapping[[i[0] for i in mapping].index(show[2])][1]
-            print("Found ID:" + str(id) + " in mapping table for " + show[0])
-            tvdblist.append([show[0],show[1],id])
+        if show[2] in [i[1] for i in mapping]:
+            map=mapping[[i[1] for i in mapping].index(show[2])]
+            print(show[0] + " is mapped to " + str(map[2]) + " season " + str(map[3]))
+            tvdblist.append([map[0],map[2],map[3]])
         else:
             tmp = get_id_from_sonarr(show[0], show[1], show[2])
             if tmp is not None:
                 print("ID received from sonarr " + show[0])
                 tvdblist.append(tmp)
 
+    #if id is in sonarrlist's third object, add to ignorelist
+    for show in tvdblist:
+        if show[1] in [i[2] for i in sonarrlist]:
+            print(show[0] + " is already in Sonarr, checking season")
+            i=sonarrlist[[i[2] for i in sonarrlist].index(show[1])]
+            if str(show[2]) not in [str(season["seasonNumber"]) for season in i[5]]:
+                print("Adding season " + str(show[2]) + " to " + show[0])
+                updateSonarrSeason(show[0],show[1],show[2],i[3],i[4])
+            else:
+                print("Season " + str(show[2]) + " is already monitored for " + show[0] +", skipping")
+            tvdblist.remove(show)
     #send each item in tvdblist to add_show_to_sonarr
     for show in tvdblist:
-        if LOGGING:
-            print("Adding " + show[0] + "to Sonarr")
-        add_show_to_sonarr(show[0],show[1],tag)
+        #if show length is 3
+        if len(show) == 3:
+            add_show_to_sonarr(show[0],show[1],tag,show[2])
+        else:
+            add_show_to_sonarr(show[0],show[1],tag)
+
+
 
 if __name__ == "__main__":
     main()
