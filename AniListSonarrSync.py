@@ -164,4 +164,3 @@ for show in newShows:
 #send each item in tvdblist to add_show_to_sonarr
 for show in tvdblist:
     add_show_to_sonarr(show[0],show[1],tag)
-
