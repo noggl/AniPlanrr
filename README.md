@@ -1,2 +1,2 @@
 # AniPlanningToSonarr
-Sync AniList.co Planning List to Sonarr
+Sync AniList Planning to Sonarr
