@@ -148,7 +148,7 @@ def add_show_to_sonarr(title,tvdb_id,tag):
         'monitored': 'true',
         'seasonFolder': 'true',
         'tags': [tag],
-        'addOptions': {'monitored': MONITOR, "searchForMissingEpisodes": 'true'}
+        'addOptions': {'monitor': MONITOR, "searchForMissingEpisodes": 'false'}
     }
     #write params to file
     if LOGGING:
@@ -206,7 +206,7 @@ def main():
             print("Getting AniList for " + ANILIST_USERNAME)
     anilist = getAniList(str(ANILIST_USERNAME), "TV");
     #filter anilist if anilist[2] is in ignorelist
-    #anilist = [x for x in anilist if x[2] not in ignoreList]
+    anilist = [x for x in anilist if x[2] not in ignoreList]
     if LOGGING:
             print("Getting Sonarr List")
     sonarrlist = getSonarrSeries(SONARRURL, SONARRAPIKEY);
