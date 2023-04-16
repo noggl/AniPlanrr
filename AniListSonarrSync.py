@@ -301,7 +301,7 @@ def main():
                 updateSonarrSeason(show[0],show[1],show[2],i[3],i[4])
             else:
                 print("Season " + str(show[2]) + " is already monitored for " + show[0] +", skipping")
-            tvdblist.remove(show)
+            tvdblist= [x for x in tvdblist if not x==show]
     #send each item in tvdblist to add_show_to_sonarr
     for show in tvdblist:
         #if show length is 3
