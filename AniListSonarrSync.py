@@ -15,6 +15,8 @@ if os.path.exists('.env'):
     MONITOR = os.getenv('MONITOR')
     RETRY = os.getenv('RETRY')
     LOGGING = os.getenv('LOGGING')
+    RADARRURL = os.getenv('RADARRURL')
+    RADARRAPIKEY = os.getenv('RADARRAPIKEY')
 else:
     SONARRURL = os.environ['SONARRURL']
     SONARRAPIKEY = os.environ['SONARRAPIKEY']
@@ -22,6 +24,9 @@ else:
     MONITOR = os.environ['MONITOR']
     RETRY = os.environ['RETRY']
     LOGGING=os.environ['LOGGING']
+    RADARRURL = os.environ['RADARRURL']
+    RADARRAPIKEY = os.environ['RADARRAPIKEY']
+
 
 #if logging is true
 if LOGGING is not None:
@@ -61,7 +66,7 @@ def addToIgnoreList(title, id):
 def cleanText(string):
     return re.sub(r'[^\w\s]', '', str(string)).lower()
 
-def getAniList(username,format):
+def getAniList(username):
     query = query = """
                 query ($username: String) {
                 MediaListCollection(userName: $username, type: ANIME) {
@@ -104,28 +109,44 @@ def getAniList(username,format):
         print("Error: List name is not Planning")
         return
     # Create list of titles - year objects
-    titleYearList = []
+    titleYearListTV = []
+    titleYearListMovies = []
     for entry in entries['entries']:
-        if entry['media']['format'] == format:
+        if entry['media']['format'] == "TV":
             if entry['media']['title']['english'] is not None:
-                titleYearList.append([cleanText(entry['media']['title']['english']), entry['media']['startDate']['year'],entry['media']['id']])
+                titleYearListTV.append([cleanText(entry['media']['title']['english']), entry['media']['startDate']['year'],entry['media']['id']])
             else:
-                titleYearList.append([cleanText(entry['media']['title']['romaji']), entry['media']['startDate']['year'],entry['media']['id']])
-    return titleYearList
+                titleYearListTV.append([cleanText(entry['media']['title']['romaji']), entry['media']['startDate']['year'],entry['media']['id']])
+        if entry['media']['format'] == "MOVIE":
+            if entry['media']['title']['english'] is not None:
+                titleYearListMovies.append([cleanText(entry['media']['title']['english']), entry['media']['startDate']['year'],entry['media']['id']])
+            else:
+                titleYearListMovies.append([cleanText(entry['media']['title']['romaji']), entry['media']['startDate']['year'],entry['media']['id']])
+    return [titleYearListTV,titleYearListMovies]
 
 def getSonarrSeries(SONARRURL, SONARRAPIKEY):
     response = requests.get(
     SONARRURL + "series?apikey=" + SONARRAPIKEY)
     #create list from response title and id
     seriesList = []
-    #for first object in response
+    #for each object in response
     for i in response.json():
         #if seriesType=anime
         if i['seriesType'] == "anime":
-            with open('serie.json', 'w') as outfile:
-                json.dump(i, outfile)
-            seriesList.append([cleanText(i['title'].lower()), i['year'],i['tvdbId'],i['id'],i['path'],i['seasons']])
+            seriesList.append([cleanText(i['title']), i['year'],i['tvdbId'],i['id'],i['path'],i['seasons']])
     return seriesList
+
+def getRadarrMovies(RADARRURL, RADARRAPIKEY):
+    response = requests.get(
+    RADARRURL + "v3/movie?apikey=" + RADARRAPIKEY)
+    #create list from response title and id
+    movieList = []
+    #write response to file
+    with open('movies.json', 'w') as f:
+        json.dump(response.json(), f)
+    for i in response.json():
+        movieList.append([cleanText(i['title']),i['year'],i['tmdbId']])
+    return movieList
 
 def getListDifference(list1, list2):
     #ignore third element of every object
@@ -180,8 +201,48 @@ def add_show_to_sonarr(title,tvdb_id,tag,season=None):
         with open('response.json', 'w') as outfile:
             json.dump(response.json(), outfile)
         #print response.errorMessage
-        
 
+def add_movie_to_radarr(title,tmdb_id,tag):
+    print("Adding " + title + " to Radarr")
+    #print variables
+
+    params = {
+        'tmdbId': tmdb_id,
+        'title': title,
+        'qualityProfileId': 1,
+        'path': '/movies/Anime/' + title,
+        'minimumAvailability': 'released',
+        'tags': [tag],
+        'monitored': True,
+        'addOptions': {'monitor': 'movieOnly', "searchForMovie": True}
+    }
+    #write params to file
+    with open('params.json', 'w') as outfile:
+            json.dump(params, outfile)
+    response = requests.post(RADARRURL + 'v3/movie?apikey=' + RADARRAPIKEY, json=params)
+    # If resposne is 201, print success
+    if response.status_code == 201:
+        print(title + " was added to Radarr")
+    else:
+        print("ERRROR: " + title + " could not be added to Radarr")
+        #write response to file
+        with open('response.json', 'w') as outfile:
+            json.dump(response.json(), outfile)
+        #print response.errorMessage
+        
+def get_id_from_radarr(title, year,anidb_id):
+    search_string = title.replace(' ', '%20') + '%20' + str(year)
+    #print(search_string)
+    response = requests.get(
+        RADARRURL + 'v3/movie/lookup?apikey=' + RADARRAPIKEY + '&term=' + search_string)
+    #print(response.json())
+    radarrTitle=cleanText(response.json()[0]['title'])
+    if radarrTitle == title.lower():
+        return [response.json()[0]['title'], response.json()[0]['tmdbId']]
+    else:
+        #print the two titles
+        print("TMDB ID " + str(response.json()[0]['tmdbId']) + "(" + cleanText(response.json()[0]['title']) + ") seems wrong for " + title)
+        #append to error file with newline if not first line
 
 def get_id_from_sonarr(title, year,anidb_id):
     search_string = title.replace(' ', '%20') + '%20' + str(year)
@@ -221,24 +282,39 @@ def updateSonarrSeason(sonarrid,season,tag):
             json.dump(response.json(), outfile)
         #print response.errorMessage
 
-
-
-def getTagId(tag_name):
+def getSonarrTagId(tag_name):
     params = {
         'label': tag_name
     }
     response = requests.get(SONARRURL + 'tag?apikey=' + SONARRAPIKEY)
     #get id of tag labeled "fronAniList"
+    tag_id = None
     for i in response.json():
         if i['label'] == tag_name.lower():
-            tag_id = i['id']
+            tag_id=i['id']
     # if tag_id was not found, create it
     if tag_id is None:
         response = requests.post(SONARRURL + 'tag?apikey=' + SONARRAPIKEY, data=str(params).encode('utf-8'))
         if response.status_code == 201:
-            for i in response.json():
-                if i['label'] == tag_name.lower():
-                    tag_id = i['id']
+            tag_id = response.json()['id']
+    return tag_id
+
+def getRadarrTagId(tag_name):
+    params = {
+        'label': tag_name
+    }
+    response = requests.get(RADARRURL + 'v3/tag?apikey=' + RADARRAPIKEY)
+    tag_id = None
+    #get id of tag labeled "fronAniList"
+    #find id in response.json() where label = tag_name
+    for i in response.json():
+        if i['label'] == tag_name.lower():
+            tag_id=i['id']
+    # if tag_id was not found, create it
+    if tag_id is None:
+        response = requests.post(RADARRURL + 'v3/tag?apikey=' + RADARRAPIKEY, json=params)
+        if response.status_code == 201:
+            tag_id = response.json()['id']
     return tag_id
 
 if os.path.exists('.env'):
@@ -249,15 +325,20 @@ else:
 def main():
     if LOGGING:
             print("Getting AniList for " + ANILIST_USERNAME)
-    anilist = getAniList(str(ANILIST_USERNAME), "TV");
+    [anilist,animovielist] = getAniList(str(ANILIST_USERNAME));
     #filter anilist if anilist[2] is in ignorelist
     anilist = [x for x in anilist if x[2] not in ignoreList]
     if LOGGING:
             print("Getting Sonarr List")
     sonarrlist = getSonarrSeries(SONARRURL, SONARRAPIKEY);
+    if LOGGING:
+        print("Getting Radarr List")
+    radarrlist = getRadarrMovies(RADARRURL, RADARRAPIKEY);
     newShows = getListDifference(anilist, sonarrlist);
+    newMovies = getListDifference(animovielist, radarrlist);
     if LOGGING:
             print("Found " + str(len(newShows)) + " new shows to add to Sonarr")
+            print("Found " + str(len(newMovies)) + " new movies to add to Radarr")
     if LOGGING:
         with open('newShows.json', 'w') as outfile:
             json.dump(newShows, outfile)
@@ -269,8 +350,8 @@ def main():
             json.dump(ignoreList, outfile)
         with open('mapping.json', 'w') as outfile:
             json.dump(mapping, outfile)
-
-    tag=getTagId("fromanilist")
+    sonarrTag=getSonarrTagId("fromanilist")
+    radarrTag=getRadarrTagId("fromanilist")
 
     #send each item in newShows to get_id_from_sonarr
     tvdblist = []
@@ -302,11 +383,26 @@ def main():
     for show in tvdblist:
         #if show length is 3
         if len(show) == 3:
-            add_show_to_sonarr(show[0],show[1],tag,show[2])
+            add_show_to_sonarr(show[0],show[1],sonarrTag,show[2])
         else:
-            add_show_to_sonarr(show[0],show[1],tag)
+            add_show_to_sonarr(show[0],show[1],sonarrTag)
 
+    moviedblist = []
+    for movie in newMovies:
+        if LOGGING:
+            print("Looking for ID for " + movie[0])
+        if movie[2] in [i[1] for i in mapping]:
+            map=mapping[[i[1] for i in mapping].index(movie[2])]
+            print(movie[0] + " is mapped to " + str(map[2]) + " season " + str(map[3]))
+            moviedblist.append([map[0],map[2],map[3]])
+        else:
+            tmp = get_id_from_radarr(movie[0], movie[1], movie[2])
+            if tmp is not None:
+                print("ID received from radarr " + movie[0])
+                moviedblist.append(tmp)
 
+    for movie in moviedblist:
+        add_movie_to_radarr(movie[0],movie[1],radarrTag)
 
 if __name__ == "__main__":
     main()
