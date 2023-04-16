@@ -45,12 +45,17 @@ if os.path.exists('mapping.csv'):
             mapping.append([int(arr[1]),int(arr[2])])
 
 def addToIgnoreList(title, id):
-    print("Adding " + title + " to ignore list")
-    with open('ignore.csv', 'a') as f:
-    # if file is not empty, add newline
-        if os.stat('ignore.csv').st_size != 0:
-            f.write('\n')
-        f.write(title + ';' + str(id))
+    #if id isn't already in ignorelist
+    if id not in ignoreList:
+        #add id to ignorelist
+        print("Adding " + title + " to ignore list")
+        with open('ignore.csv', 'a') as f:
+        # if file is not empty, add newline
+            if os.stat('ignore.csv').st_size != 0:
+                f.write('\n')
+            f.write(title + ';' + str(id))
+    else:
+        print(title + " is already in ignore list")
 
 def cleanText(string):
     return re.sub(r'[^\w\s]', '', str(string)).lower()
