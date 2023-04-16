@@ -1,0 +1,14 @@
+version: '3.7'
+services:
+  aniplanningtosonarr:
+    container_name: aniplanningtosonarr
+    build: .
+    restart: unless-stopped
+    environment:
+      - SONARRURL=http://192.168.1.1:8989/api/
+      - SONARRAPIKEY=your_api_key
+      - ANILIST_USERNAME=yourname
+      - MONITOR_ALL=True
+      - INTERVAL=60
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'

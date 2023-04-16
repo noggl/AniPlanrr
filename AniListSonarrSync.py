@@ -4,12 +4,19 @@ import json
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
-
-SONARRURL = os.getenv('SONARRURL')
-SONARRAPIKEY = os.getenv('SONARRAPIKEY')
-ANILIST_USERNAME = os.getenv('ANILIST_USERNAME')
-MONITOR_ALL = os.getenv('MONITOR_ALL')
+#check if there is a .env file
+if os.path.exists('.env'):
+    load_dotenv()
+    SONARRURL = os.getenv('SONARRURL')
+    SONARRAPIKEY = os.getenv('SONARRAPIKEY')
+    ANILIST_USERNAME = os.getenv('ANILIST_USERNAME')
+    MONITOR_ALL = os.getenv('MONITOR_ALL')
+else:
+    SONARRURL = os.environ['SONARRURL']
+    SONARRAPIKEY = os.environ['SONARRAPIKEY']
+    ANILIST_USERNAME = os.environ['ANILIST_USERNAME']
+    MONITOR_ALL = os.environ['MONITOR_ALL']
+    # Since No ENV file was found, print the variables
 
 def getAniList(username,format):
     query = query = """
@@ -43,7 +50,6 @@ def getAniList(username,format):
         'username': username
     }
     url = 'https://graphql.anilist.co'
-
     # Make the HTTP Api request
     response = requests.post(url, json={'query': query, 'variables': variables})
     entries = response.json()['data']['MediaListCollection']['lists'][3];
@@ -127,9 +133,13 @@ def getTagId(tag_name):
                     tag_id = i['id']
     return tag_id
 
+if os.path.exists('.env'):
+    print("Found .env file, loading variables")
+else:
+    print("No .env file found, loading variables from environment")
     
 
-anilist = getAniList(ANILIST_USERNAME, "TV");
+anilist = getAniList(str(ANILIST_USERNAME), "TV");
 #write anilist to file
 with open('anilist.json', 'w') as outfile:
     json.dump(anilist, outfile)
