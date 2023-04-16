@@ -198,23 +198,19 @@ def get_id_from_sonarr(title, year,anidb_id):
         if RETRY == "False":
             addToIgnoreList(title, anidb_id)
 
-def updateSonarrSeason(title,tvdb_id,season,sonarrid,sonarrpath,tags=None):
+def updateSonarrSeason(sonarrid,season,tag):
+    # Print variables
+    print("Updating Sonarr season")
+    # Get entry from sonarr by id
+    entry = requests.get(SONARRURL + 'series/' + str(sonarrid) + '?apikey=' + SONARRAPIKEY).json()
+    title=entry['title']
     print("Adding " + title + " season " + str(season) + " to Sonarr")
-    params = {
-    'id': sonarrid,
-    'tvdbId': tvdb_id,
-    'profileId': 1,
-    'path': sonarrpath,
-    'seriesType': 'Anime',
-    'seasons': [{
-        'seasonNumber': season,
-        'monitored': 'true'
-    }],
-    'addOptions': {'searchForMissingEpisodes': 'false'}
-    }
-    if tags is not None:
-        params['tags'] = tags
-    response = requests.put(SONARRURL + 'series/' + str(sonarrid) + '?apikey=' + SONARRAPIKEY, data=str(params).encode('utf-8'))
+    #change "monitored" in entry['seasons'] to true where seasonNumber = season
+    for i in range(len(entry['seasons'])):
+        if entry['seasons'][i]['seasonNumber'] == season:
+            entry['seasons'][i]['monitored'] = 'true'
+    entry['tags'].append(tag)
+    response = requests.put(SONARRURL + 'series/' + str(sonarrid) + '?apikey=' + SONARRAPIKEY, json=entry)
     # If resposne is 201, print success
     if response.status_code == 202:
         print(title + " season " + str(season) + " was added to Sonarr")
@@ -296,9 +292,9 @@ def main():
         if show[1] in [i[2] for i in sonarrlist]:
             print(show[0] + " is already in Sonarr, checking season")
             i=sonarrlist[[i[2] for i in sonarrlist].index(show[1])]
-            if str(show[2]) not in [str(season["seasonNumber"]) for season in i[5]]:
+            if str(show[2]) not in [str(season["seasonNumber"]) for season in i[5] if season["monitored"]]:
                 print("Adding season " + str(show[2]) + " to " + show[0])
-                updateSonarrSeason(show[0],show[1],show[2],i[3],i[4])
+                updateSonarrSeason(i[3],show[2],sonarrTag)
             else:
                 print("Season " + str(show[2]) + " is already monitored for " + show[0] +", skipping")
             tvdblist= [x for x in tvdblist if not x==show]
