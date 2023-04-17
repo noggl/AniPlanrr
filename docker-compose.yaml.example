@@ -12,6 +12,7 @@ services:
       - ANILIST_USERNAME=yourname               # AniList Username
       - MONITOR=all                             # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot)
       - RETRY=True                              # If True, will write failed shows to ignore file to ignore next time
+      - INTERVAL=3600                           # Interval in seconds to run the script on (this will run it every hour)
     volumes:
       - '/etc/localtime:/etc/localtime:ro'
       - 'config:/config'                        # Config file location

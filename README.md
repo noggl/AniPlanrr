@@ -1,14 +1,15 @@
-# AniPlanningToSonarr
+# AniPlanrr
 
 Sync an AniList user's "Plan to Watch" list to Sonarr and Radarr.
 
-A script to sync your AniList planning list to Sonarr and Radarr. This script will add any shows from your AniList planning list to Sonarr and Radarr. It will also update any shows that are already in Sonarr/Radarr to match the AniList planning list. This script will not remove shows from Sonarr/Radarr that are not in your AniList planning list, nor will it add shows to your AniList planning list.
+This script will add any shows from your AniList planning list to Sonarr and Radarr. It will also update any shows that are already in Sonarr/Radarr to match the AniList planning list. This script will not remove shows from Sonarr/Radarr that are not in your AniList planning list, nor will it add shows to your AniList planning list.
 
 It is highly recommended to use [RickDB/PlexMALSync](https://github.com/RickDB/PlexMALSync) to move watched shows to your watching/completed list.
 
 # Getting Started
+There are currently no prebuilt docker images, so regardless of the method of running the script, (docker or local), you'll need to clone the repo.
 ## Running in Docker (Recommended)
-You can use the included docker-compose file to run the script in a docker container.
+After cloning the repo, you can use the included docker-compose file to run the script in a docker container.
 ```
 version: '3.7'
 services:
@@ -24,6 +25,7 @@ services:
       - ANILIST_USERNAME=yourname               # AniList Username
       - MONITOR=all                             # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot)
       - RETRY=True                              # If True, will write failed shows to ignore file to ignore next time
+      - INTERVAL=3600                           # Interval in seconds to run the script on (this will run it every hour)
     volumes:
       - '/etc/localtime:/etc/localtime:ro'
       - 'config:/config'                        # Config file location
