@@ -5,13 +5,13 @@ services:
     build: .
     restart: unless-stopped
     environment:
-      - SONARRURL=http://192.168.1.1:8989/api/
-      - SONARRAPIKEY=your_api_key
-      - RADARRURL=http://192.168.1.1:7878/api/
-      - RADARRAPIKEY=your_api_key
-      - ANILIST_USERNAME=yourname
-      - MONITOR=all
-      - RETRY=False
+      - SONARRURL=http://192.168.1.1:8989/api/  # Sonarr URL
+      - SONARRAPIKEY=your_api_key               # Sonarr API Key
+      - RADARRURL=http://192.168.1.1:7878/api/  # Radarr URL
+      - RADARRAPIKEY=your_api_key               # Radarr API Key
+      - ANILIST_USERNAME=yourname               # AniList Username
+      - MONITOR=all                             # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot)
+      - RETRY=True                              # If True, will write failed shows to ignore file to ignore next time
     volumes:
       - '/etc/localtime:/etc/localtime:ro'
-      - 'config:/config'
+      - 'config:/config'                        # Config file location
