@@ -12,8 +12,8 @@ You can use the included docker-compose file to run the script in a docker conta
 ```
 version: '3.7'
 services:
-  aniplanningtosonarr:
-    container_name: aniplanningtosonarr
+  aniplanrr:
+    container_name: aniplanrr
     build: .
     restart: unless-stopped
     environment:
