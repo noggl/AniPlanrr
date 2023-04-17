@@ -413,13 +413,13 @@ def sendToSonarr(newShows,mapping,sonarrTag,sonarrlist):
         if show[1] in [i[2] for i in sonarrlist]:
             #if show has 4 items
             if len(show) == 4:
-                print(show[0] + " is already in Sonarr, checking season")
                 i=sonarrlist[[i[2] for i in sonarrlist].index(show[1])]
+                print(i[0] + " is already in Sonarr, checking season")
                 if str(show[3]) not in [str(season["seasonNumber"]) for season in i[5] if season["monitored"]]:
                     print("Adding season " + str(show[3]) + " to " + show[0])
                     updateSonarrSeason(i[3],show[3],sonarrTag,show[2])
                 else:
-                    print("Season " + str(show[2]) + " is already monitored for " + show[0] +", skipping")
+                    print("Season " + str(show[3]) + " is already monitored for " + show[0] +", skipping")
                 tvdblist= [x for x in tvdblist if not x==show]
     #send each item in tvdblist to add_show_to_sonarr
     for show in tvdblist:
