@@ -1,8 +1,8 @@
 #!/bin/sh
 while true
 do
-  echo "Running AniListSonarrSync.py"
-  python ./AniListSonarrSync.py
+  echo "Running aniplanrr.py"
+  python ./aniplanrr.py
   echo "Sleeping for ${INTERVAL} seconds"
   sleep "${INTERVAL}"
 done
