@@ -115,7 +115,7 @@ def addToIgnoreList(title, id):
         pr("Adding " + title + " to ignore list")
         with open(configPath + 'ignore.csv', 'a') as f:
         # if file is not empty, add newline
-            if os.stat('ignore.csv').st_size != 0:
+            if os.stat(configPath + 'ignore.csv').st_size != 0:
                 f.write('\n')
             f.write(title + ';' + str(id))
     else:
@@ -210,7 +210,7 @@ def getRadarrMovies(RADARRURL, RADARRAPIKEY):
         return
     movieList = []
     #write response to file
-    with open('movies.json', 'w') as f:
+    with open(logPath + 'movies.json', 'w') as f:
         json.dump(response.json(), f)
     for i in response.json():
         movieList.append([cleanText(i['title']),i['year'],i['tmdbId']])
@@ -254,7 +254,7 @@ def add_show_to_sonarr(title,tvdb_id,tag,anidb_id,season=None):
         params['addOptions']= {'monitor': MONITOR, "searchForMissingEpisodes": 'true'}
 
     #write params to file
-    with open('params.json', 'w') as outfile:
+    with open(logPath + 'params.json', 'w') as outfile:
             json.dump(params, outfile)
     response = requests.post(SONARRURL + 'series?apikey=' + SONARRAPIKEY, data=str(params).encode('utf-8'))
     # If resposne is 201, print success
@@ -275,15 +275,15 @@ def add_show_to_sonarr(title,tvdb_id,tag,anidb_id,season=None):
                 if not any(writing in s for s in open('mapping.csv')):
                     pr("Auto-Fill Turned on, Writing " + writing + " to mapping.csv")
                     #if not the first line in mapping.csv, add a new line
-                    if os.stat('mapping.csv').st_size != 0:
-                        with open('mapping.csv', 'a') as f:
+                    if os.stat(configPath + 'mapping.csv').st_size != 0:
+                        with open(configPath + 'mapping.csv', 'a') as f:
                             f.write("\r")
-                    with open('mapping.csv', 'a') as f:
+                    with open(configPath + 'mapping.csv', 'a') as f:
                         f.write(entry['title'] + ";" + str(anidb_id) + ";" + str(entry['tvdbId']) + ";1")
     else:
         pr("ERRROR: " + title + " could not be added to Sonarr")
         #write response to file
-        with open('response.json', 'w') as outfile:
+        with open(logPath + 'response.json', 'w') as outfile:
             json.dump(response.json(), outfile)
         #print response.errorMessage
 
@@ -302,7 +302,7 @@ def add_movie_to_radarr(title,tmdb_id,tag,anidb_id):
         'addOptions': {'monitor': 'movieOnly', "searchForMovie": True}
     }
     #write params to file
-    with open('params.json', 'w') as outfile:
+    with open(logPath + 'params.json', 'w') as outfile:
             json.dump(params, outfile)
     response = requests.post(RADARRURL + 'v3/movie?apikey=' + RADARRAPIKEY, json=params)
     # If resposne is 201, print success
@@ -315,15 +315,15 @@ def add_movie_to_radarr(title,tmdb_id,tag,anidb_id):
             if not any(writing in s for s in open('mapping.csv')):
                 pr("Auto-Fill Turned on, Writing " + writing + " to mapping.csv")
                 #if not the first line in mapping.csv, add a new line
-                if os.stat('mapping.csv').st_size != 0:
-                    with open('mapping.csv', 'a') as f:
+                if os.stat(configPath + 'mapping.csv').st_size != 0:
+                    with open(configPath + 'mapping.csv', 'a') as f:
                         f.write("\r")
-                with open('mapping.csv', 'a') as f:
+                with open(configPath + 'mapping.csv', 'a') as f:
                     f.write(str(title) + ";" + str(anidb_id) + ";" + str(tmdb_id) + ";1")
     else:
         pr("ERRROR: " + title + " could not be added to Radarr")
         #write response to file
-        with open('response.json', 'w') as outfile:
+        with open(logPath + 'response.json', 'w') as outfile:
             json.dump(response.json(), outfile)
         #print response.errorMessage
         
@@ -381,15 +381,15 @@ def updateSonarrSeason(sonarrid,season,tag,anidb_id):
                 if not any(writing in s for s in open('mapping.csv')):
                     pr("Auto-Fill Turned on, Writing " + writing + " to mapping.csv")
                     #if not the first line in mapping.csv, add a new line
-                    if os.stat('mapping.csv').st_size != 0:
-                        with open('mapping.csv', 'a') as f:
+                    if os.stat(configPath + 'mapping.csv').st_size != 0:
+                        with open(configPath + 'mapping.csv', 'a') as f:
                             f.write("\r")
-                    with open('mapping.csv', 'a') as f:
+                    with open(configPath + 'mapping.csv', 'a') as f:
                         f.write(entry['title'] + ";" + str(anidb_id) + ";" + str(entry['tvdbId']) + ";"+ str(season))   
     else:
         pr("ERRROR: " + title + " season " + str(season) + " could not be added to Sonarr")
         #write response to file
-        with open('response.json', 'w') as outfile:
+        with open(logPath + 'response.json', 'w') as outfile:
             json.dump(response.json(), outfile)
         #print response.errorMessage
 
