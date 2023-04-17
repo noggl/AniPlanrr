@@ -185,6 +185,8 @@ def add_show_to_sonarr(title,tvdb_id,tag,anidb_id,season=None):
         'seasonFolder': 'true',
         'tags': [tag]
     }
+    #if season is not None, and is not 1, add season to params
+    # THIS NEEDS TO GET CHANGED TO include "and season != 1"
     if season is not None:
         print("adding unmonitored, season will be updated later")
         params['seasons'] = [{
@@ -206,6 +208,7 @@ def add_show_to_sonarr(title,tvdb_id,tag,anidb_id,season=None):
         if season is not None:
             #wait for 10 seconds
             time.sleep(4)
+            print("season is" + str(season))
             updateSonarrSeason(entry['id'],season,tag,anidb_id)
             
         else:
@@ -306,16 +309,17 @@ def updateSonarrSeason(sonarrid,season,tag,anidb_id):
     print("Adding " + title + " season " + str(season) + " to Sonarr")
     #change "monitored" in entry['seasons'] to true where seasonNumber = season
     for i in range(len(entry['seasons'])):
-        if entry['seasons'][i]['seasonNumber'] == season:
-            entry['seasons'][i]['monitored'] = 'true'
+        if int(entry['seasons'][i]['seasonNumber']) == int(season):
+            entry['seasons'][i]['monitored'] = True
     entry['tags'].append(tag)
+    entry['monitored']=True
     response = requests.put(SONARRURL + 'series/' + str(sonarrid) + '?apikey=' + SONARRAPIKEY, json=entry)
     # If resposne is 201, print success
     if response.status_code == 202:
         print(title + " season " + str(season) + " was added to Sonarr")
         if AUTO_FILL_MAPPING:
             #write title, anidb_id, tvdbID to mappings.csv
-                writing=entry['title'] + ";" + str(anidb_id) + ";" + str(entry['tvdbId']) + ";1"
+                writing=entry['title'] + ";" + str(anidb_id) + ";" + str(entry['tvdbId']) + ";"+ str(season)
                 #write title, anidb_id, tvdbID to mapping.csv
                 #if text is not already one of the lines in mappings.csv
                 if not any(writing in s for s in open('mapping.csv')):
@@ -325,8 +329,7 @@ def updateSonarrSeason(sonarrid,season,tag,anidb_id):
                         with open('mapping.csv', 'a') as f:
                             f.write("\r")
                     with open('mapping.csv', 'a') as f:
-                        f.write(entry['title'] + ";" + str(anidb_id) + ";" + str(entry['tvdbId']) + ";"+ str(season))
-                
+                        f.write(entry['title'] + ";" + str(anidb_id) + ";" + str(entry['tvdbId']) + ";"+ str(season))   
     else:
         print("ERRROR: " + title + " season " + str(season) + " could not be added to Sonarr")
         #write response to file
@@ -399,7 +402,7 @@ def sendToSonarr(newShows,mapping,sonarrTag,sonarrlist):
         if show[2] in [i[1] for i in mapping]:
             map=mapping[[i[1] for i in mapping].index(show[2])]
             print(show[0] + " is mapped to " + str(map[2]) + " season " + str(map[3]))
-            tvdblist.append([map[0],map[2],map[3],map[1]])
+            tvdblist.append([map[0],map[2],map[1],map[3]])
         else:
             tmp = get_id_from_sonarr(show[0], show[1], show[2])
             if tmp is not None:
@@ -408,14 +411,16 @@ def sendToSonarr(newShows,mapping,sonarrTag,sonarrlist):
     #if id is in sonarrlist's third object, add to ignorelist
     for show in tvdblist:
         if show[1] in [i[2] for i in sonarrlist]:
-            print(show[0] + " is already in Sonarr, checking season")
-            i=sonarrlist[[i[2] for i in sonarrlist].index(show[1])]
-            if str(show[2]) not in [str(season["seasonNumber"]) for season in i[5] if season["monitored"]]:
-                print("Adding season " + str(show[2]) + " to " + show[0])
-                updateSonarrSeason(i[3],show[2],sonarrTag,show[3])
-            else:
-                print("Season " + str(show[2]) + " is already monitored for " + show[0] +", skipping")
-            tvdblist= [x for x in tvdblist if not x==show]
+            #if show has 4 items
+            if len(show) == 4:
+                print(show[0] + " is already in Sonarr, checking season")
+                i=sonarrlist[[i[2] for i in sonarrlist].index(show[1])]
+                if str(show[3]) not in [str(season["seasonNumber"]) for season in i[5] if season["monitored"]]:
+                    print("Adding season " + str(show[3]) + " to " + show[0])
+                    updateSonarrSeason(i[3],show[3],sonarrTag,show[2])
+                else:
+                    print("Season " + str(show[2]) + " is already monitored for " + show[0] +", skipping")
+                tvdblist= [x for x in tvdblist if not x==show]
     #send each item in tvdblist to add_show_to_sonarr
     for show in tvdblist:
         #if show length is 3
