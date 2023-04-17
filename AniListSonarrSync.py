@@ -419,7 +419,7 @@ def sendToSonarr(newShows,mapping,sonarrTag,sonarrlist):
                     print("Adding season " + str(show[3]) + " to " + show[0])
                     updateSonarrSeason(i[3],show[3],sonarrTag,show[2])
                 else:
-                    print("Season " + str(show[3]) + " is already monitored for " + show[0] +", skipping")
+                    print("Season " + str(show[3]) + " is already monitored for " + i[0] +", skipping")
                 tvdblist= [x for x in tvdblist if not x==show]
     #send each item in tvdblist to add_show_to_sonarr
     for show in tvdblist:
