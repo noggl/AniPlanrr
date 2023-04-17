@@ -8,19 +8,20 @@ import re
 
 # If in docker container
 if os.path.exists('.env'):
-    #set config path string to /config
-    configPath = '/config/'
-    #if ignore.csv doesn't exist, create it
-    if not os.path.exists(configPath + 'ignore.csv'):
-        with open(configPath + 'ignore.csv', 'w') as f:
-            f.write('')
-    #if mapping.csv doesn't exist, create it
-    if not os.path.exists(configPath + 'mapping.csv'):
-        with open(configPath + 'mapping.csv', 'w') as f:
-            f.write('')
-else:
     # Assume repo structure
     configPath = '../config/'
+else:
+    #set config path string to /config
+    configPath = '/config/'
+
+#if ignore.csv doesn't exist, create it
+if not os.path.exists(configPath + 'ignore.csv'):
+    with open(configPath + 'ignore.csv', 'w') as f:
+        f.write('')
+#if mapping.csv doesn't exist, create it
+if not os.path.exists(configPath + 'mapping.csv'):
+    with open(configPath + 'mapping.csv', 'w') as f:
+        f.write('')
 logPath=configPath+'log/'
 
 def pr(string):
@@ -209,9 +210,10 @@ def getRadarrMovies(RADARRURL, RADARRAPIKEY):
         pr("Error: AniList response is not 200")
         return
     movieList = []
-    #write response to file
-    with open(logPath + 'movies.json', 'w') as f:
-        json.dump(response.json(), f)
+    if LOGGING:
+        #write response to file
+        with open(logPath + 'movies.json', 'w') as f:
+            json.dump(response.json(), f)
     for i in response.json():
         movieList.append([cleanText(i['title']),i['year'],i['tmdbId']])
     return movieList
