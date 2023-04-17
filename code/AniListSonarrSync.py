@@ -6,6 +6,33 @@ import os
 from dotenv import load_dotenv
 import re
 
+# If in docker container
+if 'DOCKER' in os.environ:
+    #set config path string to /config
+    configPath = '/config/'
+    #if ignore.csv doesn't exist, create it
+    if not os.path.exists(configPath + 'ignore.csv'):
+        with open(configPath + 'ignore.csv', 'w') as f:
+            f.write('')
+    #if mapping.csv doesn't exist, create it
+    if not os.path.exists(configPath + 'mapping.csv'):
+        with open(configPath + 'mapping.csv', 'w') as f:
+            f.write('')
+else:
+    # Assume repo structure
+    configPath = '../config/'
+logPath=configPath+'log/'
+
+def pr(string):
+    print(string)
+    if LOGGING is not None:
+        with open(logPath + 'log.txt', 'a') as f:
+            # if file is not empty, add newline
+            if os.stat(logPath + 'log.txt').st_size != 0:
+                f.write('\n')
+            #write timestamp + string
+            f.write(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ': ' + string)
+
 # Set all Variables to None initially
 SONARRURL = None
 SONARRAPIKEY = None
@@ -39,41 +66,60 @@ else:
     ANILIST_USERNAME = os.environ['ANILIST_USERNAME']
     MONITOR = os.environ['MONITOR']
     RETRY = os.environ['RETRY']
+    
 
 #if logging is true
 if LOGGING is not None:
-    print("Logging is enabled")
+    pr("Logging is enabled")
+    #create log folder
+    if not os.path.exists('log'):
+        os.makedirs('log')
 else:
-    print("Logging is disabled")
+    pr("Logging is disabled")
+
+
 
 # Create list of titles - year objects from ignorelist.txt if it exists
 ignoreList = []
-if os.path.exists('ignore.csv'):
-    with open('ignore.csv', 'r') as f:
-        for line in f:
+with open(configPath + 'ignore.csv', 'r') as f:
+    for line in f:
+        #check that file can be split into 2 parts
+        if len(line.strip().split(';')) != 2:
+            pr("Error: ignore.csv is not formatted correctly")
+        else:
             arr = line.strip().split(';')
-            ignoreList.append(int(arr[1]))
+            #check that id is an int
+            if not arr[1].isdigit():
+                pr("Error: ignore.csv is not formatted correctly")
+                ignoreList.append(int(arr[1]))
 
-#import custom mapping array from mapping.csv if it exists
+#import custom mapping array from mapping.csv
 mapping = []
-if os.path.exists('mapping.csv'):
-    with open('mapping.csv', 'r') as f:
-        for line in f:
+with open(configPath + 'mapping.csv', 'r') as f:
+    for line in f:
+        #check that file can be split into 4 parts
+        if len(line.strip().split(';')) != 4:
+            pr("Error: mapping.csv is not formatted correctly")
+        else:
             arr = line.strip().split(';')
-            mapping.append([arr[0],int(arr[1]),int(arr[2]),int(arr[3])])
+            #check that 2nd, third and fourth part are ints
+            if not arr[1].isdigit() or not arr[2].isdigit() or not arr[3].isdigit():
+                pr("Error: mapping.csv is not formatted correctly")
+            else:
+                mapping.append([arr[0],int(arr[1]),int(arr[2]),int(arr[3])])
 
 def addToIgnoreList(title, id):
     #if id isn't already in ignorelist
     if id not in ignoreList:
         #add id to ignorelist
-        print("Adding " + title + " to ignore list")
-        with open('ignore.csv', 'a') as f:
+        pr("Adding " + title + " to ignore list")
+        with open(configPath + 'ignore.csv', 'a') as f:
         # if file is not empty, add newline
             if os.stat('ignore.csv').st_size != 0:
                 f.write('\n')
             f.write(title + ';' + str(id))
     else:
-        print(title + " is already in ignore list")
+        pr(title + " is already in ignore list")
 
 def cleanText(string):
     return re.sub(r'[^\w\s]', '', str(string)).lower()
@@ -112,13 +158,17 @@ def getAniList(username):
     url = 'https://graphql.anilist.co'
     # Make the HTTP Api request
     response = requests.post(url, json={'query': query, 'variables': variables})
+    #if response is not 200, throw error
+    if response.status_code != 200:
+        pr("Error: AniList response is not 200")
+        return
     # find id of list with name "planned"
     planned_id = next((index for (index, d) in enumerate(response.json()['data']['MediaListCollection']['lists']) if d["name"] == "Planning"), None)
     entries = response.json()['data']['MediaListCollection']['lists'][planned_id];
     
     #if name is not Planned, throw error
     if entries['name'] != "Planning":
-        print("Error: List name is not Planning")
+        pr("Error: List name is not Planning")
         return
     # Create list of titles - year objects
     titleYearListTV = []
@@ -140,6 +190,9 @@ def getSonarrSeries(SONARRURL, SONARRAPIKEY):
     response = requests.get(
     SONARRURL + "series?apikey=" + SONARRAPIKEY)
     #create list from response title and id
+    if response.status_code != 200:
+        pr("Error: Sonarr response is not 200")
+        return
     seriesList = []
     #for each object in response
     for i in response.json():
@@ -152,6 +205,9 @@ def getRadarrMovies(RADARRURL, RADARRAPIKEY):
     response = requests.get(
     RADARRURL + "v3/movie?apikey=" + RADARRAPIKEY)
     #create list from response title and id
+    if response.status_code != 200:
+        pr("Error: AniList response is not 200")
+        return
     movieList = []
     #write response to file
     with open('movies.json', 'w') as f:
@@ -175,7 +231,7 @@ def getListDifference(list1, list2):
     
 
 def add_show_to_sonarr(title,tvdb_id,tag,anidb_id,season=None):
-    print("Adding " + title + " to Sonarr")
+    pr("Adding " + title + " to Sonarr")
     params = {
         'tvdbId': tvdb_id,
         'title': title,
@@ -188,7 +244,7 @@ def add_show_to_sonarr(title,tvdb_id,tag,anidb_id,season=None):
     #if season is not None, and is not 1, add season to params
     # THIS NEEDS TO GET CHANGED TO include "and season != 1"
     if season is not None:
-        print("adding unmonitored, season will be updated later")
+        pr("adding unmonitored, season will be updated later")
         params['seasons'] = [{
         'seasonNumber': season,
         'monitored': 'true'
@@ -203,12 +259,12 @@ def add_show_to_sonarr(title,tvdb_id,tag,anidb_id,season=None):
     response = requests.post(SONARRURL + 'series?apikey=' + SONARRAPIKEY, data=str(params).encode('utf-8'))
     # If resposne is 201, print success
     if response.status_code == 201:
-        print(title + " was added to Sonarr")
+        pr(title + " was added to Sonarr")
         entry=response.json()
         if season is not None:
             #wait for 10 seconds
             time.sleep(4)
-            print("season is" + str(season))
+            pr("season is" + str(season))
             updateSonarrSeason(entry['id'],season,tag,anidb_id)
             
         else:
@@ -217,7 +273,7 @@ def add_show_to_sonarr(title,tvdb_id,tag,anidb_id,season=None):
                 #write title, anidb_id, tvdbID to mapping.csv
                 #if text is not already one of the lines in mappings.csv
                 if not any(writing in s for s in open('mapping.csv')):
-                    print("Auto-Fill Turned on, Writing " + writing + " to mapping.csv")
+                    pr("Auto-Fill Turned on, Writing " + writing + " to mapping.csv")
                     #if not the first line in mapping.csv, add a new line
                     if os.stat('mapping.csv').st_size != 0:
                         with open('mapping.csv', 'a') as f:
@@ -225,14 +281,14 @@ def add_show_to_sonarr(title,tvdb_id,tag,anidb_id,season=None):
                     with open('mapping.csv', 'a') as f:
                         f.write(entry['title'] + ";" + str(anidb_id) + ";" + str(entry['tvdbId']) + ";1")
     else:
-        print("ERRROR: " + title + " could not be added to Sonarr")
+        pr("ERRROR: " + title + " could not be added to Sonarr")
         #write response to file
         with open('response.json', 'w') as outfile:
             json.dump(response.json(), outfile)
         #print response.errorMessage
 
 def add_movie_to_radarr(title,tmdb_id,tag,anidb_id):
-    print("Adding " + title + " to Radarr")
+    pr("Adding " + title + " to Radarr")
     #print variables
 
     params = {
@@ -251,13 +307,13 @@ def add_movie_to_radarr(title,tmdb_id,tag,anidb_id):
     response = requests.post(RADARRURL + 'v3/movie?apikey=' + RADARRAPIKEY, json=params)
     # If resposne is 201, print success
     if response.status_code == 201:
-        print(title + " was added to Radarr")
+        pr(title + " was added to Radarr")
         if AUTO_FILL_MAPPING:
             #write title, anidb_id, tvdbID to mapping.csv\
             writing = title + ";" + str(anidb_id) + ";" + str(tmdb_id) + ";1"
             #if text is not already one of the lines in mappings.csv
             if not any(writing in s for s in open('mapping.csv')):
-                print("Auto-Fill Turned on, Writing " + writing + " to mapping.csv")
+                pr("Auto-Fill Turned on, Writing " + writing + " to mapping.csv")
                 #if not the first line in mapping.csv, add a new line
                 if os.stat('mapping.csv').st_size != 0:
                     with open('mapping.csv', 'a') as f:
@@ -265,7 +321,7 @@ def add_movie_to_radarr(title,tmdb_id,tag,anidb_id):
                 with open('mapping.csv', 'a') as f:
                     f.write(str(title) + ";" + str(anidb_id) + ";" + str(tmdb_id) + ";1")
     else:
-        print("ERRROR: " + title + " could not be added to Radarr")
+        pr("ERRROR: " + title + " could not be added to Radarr")
         #write response to file
         with open('response.json', 'w') as outfile:
             json.dump(response.json(), outfile)
@@ -273,21 +329,21 @@ def add_movie_to_radarr(title,tmdb_id,tag,anidb_id):
         
 def get_id_from_radarr(title, year,anidb_id):
     search_string = title.replace(' ', '%20') + '%20' + str(year)
-    #print(search_string)
+    #pr(search_string)
     response = requests.get(
         RADARRURL + 'v3/movie/lookup?apikey=' + RADARRAPIKEY + '&term=' + search_string)
-    #print(response.json())
+    #pr(response.json())
     radarrTitle=cleanText(response.json()[0]['title'])
     if radarrTitle == title.lower():
         return [response.json()[0]['title'], response.json()[0]['tmdbId'],anidb_id]
     else:
         #print the two titles
-        print("TMDB ID " + str(response.json()[0]['tmdbId']) + "(" + cleanText(response.json()[0]['title']) + ") seems wrong for " + title)
+        pr("TMDB ID " + str(response.json()[0]['tmdbId']) + "(" + cleanText(response.json()[0]['title']) + ") seems wrong for " + title)
         #append to error file with newline if not first line
 
 def get_id_from_sonarr(title, year,anidb_id):
     search_string = title.replace(' ', '%20') + '%20' + str(year)
-    #print(search_string)
+    #pr(search_string)
     response = requests.get(
         SONARRURL + 'series/lookup?apikey=' + SONARRAPIKEY + '&term=' + search_string)
     sonarrTitle=cleanText(response.json()[0]['title'])
@@ -295,18 +351,18 @@ def get_id_from_sonarr(title, year,anidb_id):
         return [response.json()[0]['title'], response.json()[0]['tvdbId'],anidb_id]
     else:
         #print the two titles
-        print("TVDB ID " + str(response.json()[0]['tvdbId']) + "(" + cleanText(response.json()[0]['title']) + ") seems wrong for " + title)
+        pr("TVDB ID " + str(response.json()[0]['tvdbId']) + "(" + cleanText(response.json()[0]['title']) + ") seems wrong for " + title)
         #append to error file with newline if not first line
         if RETRY == "False":
             addToIgnoreList(title, anidb_id)
 
 def updateSonarrSeason(sonarrid,season,tag,anidb_id):
     # Print variables
-    print("Updating Sonarr season")
+    pr("Updating Sonarr season")
     # Get entry from sonarr by id
     entry = requests.get(SONARRURL + 'series/' + str(sonarrid) + '?apikey=' + SONARRAPIKEY).json()
     title=entry['title']
-    print("Adding " + title + " season " + str(season) + " to Sonarr")
+    pr("Adding " + title + " season " + str(season) + " to Sonarr")
     #change "monitored" in entry['seasons'] to true where seasonNumber = season
     for i in range(len(entry['seasons'])):
         if int(entry['seasons'][i]['seasonNumber']) == int(season):
@@ -316,14 +372,14 @@ def updateSonarrSeason(sonarrid,season,tag,anidb_id):
     response = requests.put(SONARRURL + 'series/' + str(sonarrid) + '?apikey=' + SONARRAPIKEY, json=entry)
     # If resposne is 201, print success
     if response.status_code == 202:
-        print(title + " season " + str(season) + " was added to Sonarr")
+        pr(title + " season " + str(season) + " was added to Sonarr")
         if AUTO_FILL_MAPPING:
             #write title, anidb_id, tvdbID to mappings.csv
                 writing=entry['title'] + ";" + str(anidb_id) + ";" + str(entry['tvdbId']) + ";"+ str(season)
                 #write title, anidb_id, tvdbID to mapping.csv
                 #if text is not already one of the lines in mappings.csv
                 if not any(writing in s for s in open('mapping.csv')):
-                    print("Auto-Fill Turned on, Writing " + writing + " to mapping.csv")
+                    pr("Auto-Fill Turned on, Writing " + writing + " to mapping.csv")
                     #if not the first line in mapping.csv, add a new line
                     if os.stat('mapping.csv').st_size != 0:
                         with open('mapping.csv', 'a') as f:
@@ -331,7 +387,7 @@ def updateSonarrSeason(sonarrid,season,tag,anidb_id):
                     with open('mapping.csv', 'a') as f:
                         f.write(entry['title'] + ";" + str(anidb_id) + ";" + str(entry['tvdbId']) + ";"+ str(season))   
     else:
-        print("ERRROR: " + title + " season " + str(season) + " could not be added to Sonarr")
+        pr("ERRROR: " + title + " season " + str(season) + " could not be added to Sonarr")
         #write response to file
         with open('response.json', 'w') as outfile:
             json.dump(response.json(), outfile)
@@ -376,21 +432,21 @@ def sendToRadarr(newMovies,mapping,radarrTag,radarrList):
     moviedblist = []
     for movie in newMovies:
         if LOGGING:
-            print("Looking for ID for " + movie[0])
+            pr("Looking for ID for " + movie[0])
         if movie[2] in [i[1] for i in mapping]:
             map=mapping[[i[1] for i in mapping].index(movie[2])]
-            print(movie[0] + " is mapped to " + str(map[2]))
+            pr(movie[0] + " is mapped to " + str(map[2]))
             moviedblist.append([map[0],map[2],map[1]])
 
         else:
             tmp = get_id_from_radarr(movie[0], movie[1], movie[2])
             if tmp is not None:
-                print("ID received from radarr " + movie[0])
+                pr("ID received from radarr " + movie[0])
                 moviedblist.append(tmp)
 
     for movie in moviedblist:
         if movie[1] in [i[2] for i in radarrList]:
-            print(movie[0] + " is already in Radarr, skipping")
+            pr(movie[0] + " is already in Radarr, skipping")
         else:
             add_movie_to_radarr(movie[0],movie[1],radarrTag,movie[2])
 
@@ -398,15 +454,15 @@ def sendToSonarr(newShows,mapping,sonarrTag,sonarrlist):
     tvdblist = []
     for show in newShows:
         if LOGGING:
-            print("Looking for ID for " + show[0])
+            pr("Looking for ID for " + show[0])
         if show[2] in [i[1] for i in mapping]:
             map=mapping[[i[1] for i in mapping].index(show[2])]
-            print(show[0] + " is mapped to " + str(map[2]) + " season " + str(map[3]))
+            pr(show[0] + " is mapped to " + str(map[2]) + " season " + str(map[3]))
             tvdblist.append([map[0],map[2],map[1],map[3]])
         else:
             tmp = get_id_from_sonarr(show[0], show[1], show[2])
             if tmp is not None:
-                print("ID received from sonarr " + show[0])
+                pr("ID received from sonarr " + show[0])
                 tvdblist.append(tmp)
     #if id is in sonarrlist's third object, add to ignorelist
     for show in tvdblist:
@@ -414,12 +470,12 @@ def sendToSonarr(newShows,mapping,sonarrTag,sonarrlist):
             #if show has 4 items
             if len(show) == 4:
                 i=sonarrlist[[i[2] for i in sonarrlist].index(show[1])]
-                print(i[0] + " is already in Sonarr, checking season")
+                pr(i[0] + " is already in Sonarr, checking season")
                 if str(show[3]) not in [str(season["seasonNumber"]) for season in i[5] if season["monitored"]]:
-                    print("Adding season " + str(show[3]) + " to " + show[0])
+                    pr("Adding season " + str(show[3]) + " to " + show[0])
                     updateSonarrSeason(i[3],show[3],sonarrTag,show[2])
                 else:
-                    print("Season " + str(show[3]) + " is already monitored for " + i[0] +", skipping")
+                    pr("Season " + str(show[3]) + " is already monitored for " + i[0] +", skipping")
                 tvdblist= [x for x in tvdblist if not x==show]
     #send each item in tvdblist to add_show_to_sonarr
     for show in tvdblist:
@@ -430,32 +486,32 @@ def sendToSonarr(newShows,mapping,sonarrTag,sonarrlist):
             add_show_to_sonarr(show[0],show[1],sonarrTag,show[2])
             
 if os.path.exists('.env'):
-    print("Found .env file, loading variables")
+    pr("Found .env file, loading variables")
 else:
-    print("No .env file found, loading variables from environment")
+    pr("No .env file found, loading variables from environment")
     
 def main():
-    if LOGGING: print("Getting AniList for " + ANILIST_USERNAME)
+    if LOGGING: pr("Getting AniList for " + ANILIST_USERNAME)
     [anilist,animovielist] = getAniList(str(ANILIST_USERNAME));
     #filter anilist if anilist[2] is in ignorelist
     anilist = [x for x in anilist if x[2] not in ignoreList]
     animovielist = [x for x in animovielist if x[2] not in ignoreList]
     if SONARRURL:
-        if LOGGING: print("Getting Sonarr List")
+        if LOGGING: pr("Getting Sonarr List")
         sonarrlist = getSonarrSeries(SONARRURL, SONARRAPIKEY);
         newShows = getListDifference(anilist, sonarrlist);
         sonarrTag=getSonarrTagId("fromanilist")
-        if LOGGING: print("Found " + str(len(newShows)) + " new shows to add to Sonarr")
+        if LOGGING: pr("Found " + str(len(newShows)) + " new shows to add to Sonarr")
         #send each item in newShows to get_id_from_sonarr
         sendToSonarr(newShows,mapping,sonarrTag,sonarrlist)
     if RADARRURL:
-        if LOGGING: print("Getting Radarr List")
+        if LOGGING: pr("Getting Radarr List")
         radarrlist = getRadarrMovies(RADARRURL, RADARRAPIKEY);
         newMovies = getListDifference(animovielist, radarrlist);
-        if LOGGING: print("Found " + str(len(newMovies)) + " new movies to add to Radarr")
+        if LOGGING: pr("Found " + str(len(newMovies)) + " new movies to add to Radarr")
         radarrTag=getRadarrTagId("fromanilist")
         sendToRadarr(newMovies,mapping,radarrTag,radarrlist)
 
 if __name__ == "__main__":
     main()
-    print("Sync Completed")
+    pr("Sync Completed")

@@ -7,8 +7,11 @@ services:
     environment:
       - SONARRURL=http://192.168.1.1:8989/api/
       - SONARRAPIKEY=your_api_key
+      - RADARRURL=http://192.168.1.1:7878/api/
+      - RADARRAPIKEY=your_api_key
       - ANILIST_USERNAME=yourname
       - MONITOR=all
-      - INTERVAL=3600
+      - RETRY=False
     volumes:
       - '/etc/localtime:/etc/localtime:ro'
+      - 'config:/config'
