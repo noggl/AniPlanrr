@@ -44,7 +44,7 @@ RETRY=True                                  #If True, will write failed shows to
 ```
 The config files will be saved to the `config` directory in the repo. You can edit the example files in that folder and remove the .example suffix to use them.
 
-To run, you'll need to install the requirements using `pip install -r code/requirements.txt` and then run the script using `python3 code/AniPlanningToSonarr.py`
+To run, you'll need to install the requirements using `pip install -r code/requirements.txt` and then run the script using `python3 code/aniplanrr.py`
 
 ## Config Files
 There are 2 configuration files stored as .csv files, these are ignore.csv and mapping.csv. 
