@@ -63,6 +63,7 @@ Attack on Titan;99147;267440;3
 Attack on Titan;20958;267440;2
 Attack on Titan;16498;267440;1
 ```
+If you would like to autogenerate a mapping file every time an item is added to Sonarr/Radarr, you can set `AUTO_FILL_MAPPING` to `True` in either the .env file of the docker-compose.yaml file depending on whether you're running locally or in docker. WARNING, THIS IS EXPERIEMENTAL AND MIGHT BREAK THINGS OR JUST NOT WORK!
 ## Thanks
 Thanks to the projects [Beannsss/AniSonarrSync](https://github.com/Beannsss/AniSonarrSync) and [RickDB/PlexMALSync](https://github.com/RickDB/PlexMALSync) for the inspiration for this script.
 
