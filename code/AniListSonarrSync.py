@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import re
 
 # If in docker container
-if 'DOCKER' in os.environ:
+if os.path.exists('.env'):
     #set config path string to /config
     configPath = '/config/'
     #if ignore.csv doesn't exist, create it
