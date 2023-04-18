@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 import re
 
+
 if os.path.exists('config/.env'):
     # Assume repo structure
     configPath = 'config/'

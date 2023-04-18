@@ -5,25 +5,6 @@ from anilist import *
 from radarr import *
 from sonarr import *
 
-# If in docker container
-if os.path.exists('config/.env'):
-    # Assume repo structure
-    configPath = 'config/'
-else:
-    # set config path string to /config
-    configPath = '/config/'
-
-load_dotenv('config/.env')
-SONARRURL = os.getenv('SONARRURL')
-SONARRAPIKEY = os.getenv('SONARRAPIKEY')
-ANILIST_USERNAME = os.getenv('ANILIST_USERNAME')
-MONITOR = os.getenv('MONITOR')
-RETRY = os.getenv('RETRY')
-AUTO_FILL_MAPPING = os.getenv('AUTO_FILL_MAPPING')
-LOGGING = os.getenv('LOGGING')
-RADARRURL = os.getenv('RADARRURL')
-RADARRAPIKEY = os.getenv('RADARRAPIKEY')
-
 # if logging is true
 if LOGGING is not None:
     pr("Logging is enabled")
