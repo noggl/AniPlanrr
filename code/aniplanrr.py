@@ -6,12 +6,23 @@ from dotenv import load_dotenv
 import re
 
 # If in docker container
-if os.path.exists('.env'):
+if os.path.exists('config/.env'):
     # Assume repo structure
-    configPath = '../config/'
+    configPath = 'config/'
 else:
     #set config path string to /config
     configPath = '/config/'
+
+load_dotenv('config/.env')
+SONARRURL = os.getenv('SONARRURL')
+SONARRAPIKEY = os.getenv('SONARRAPIKEY')
+ANILIST_USERNAME = os.getenv('ANILIST_USERNAME')
+MONITOR = os.getenv('MONITOR')
+RETRY = os.getenv('RETRY')
+AUTO_FILL_MAPPING = os.getenv('AUTO_FILL_MAPPING')
+LOGGING = os.getenv('LOGGING')
+RADARRURL = os.getenv('RADARRURL')
+RADARRAPIKEY = os.getenv('RADARRAPIKEY')
 
 def pr(string):
     print(string)
@@ -35,42 +46,6 @@ if not os.path.exists(configPath + 'mapping.csv'):
         f.write('')
 logPath=configPath+'log/'
 
-
-
-# Set all Variables to None initially
-SONARRURL = None
-SONARRAPIKEY = None
-RADARRURL = None
-RADARRAPIKEY = None
-ANILIST_USERNAME = None
-MONITOR = None
-RETRY = None
-LOGGING = None
-AUTO_FILL_MAPPING = None
-
-#check if there is a .env file
-if os.path.exists('.env'):
-    load_dotenv()
-    SONARRURL = os.getenv('SONARRURL')
-    SONARRAPIKEY = os.getenv('SONARRAPIKEY')
-    ANILIST_USERNAME = os.getenv('ANILIST_USERNAME')
-    MONITOR = os.getenv('MONITOR')
-    RETRY = os.getenv('RETRY')
-    AUTO_FILL_MAPPING = os.getenv('AUTO_FILL_MAPPING')
-    LOGGING = os.getenv('LOGGING')
-    RADARRURL = os.getenv('RADARRURL')
-    RADARRAPIKEY = os.getenv('RADARRAPIKEY')
-else:
-    if 'SONARRURL' in os.environ: SONARRURL = os.environ['SONARRURL']
-    if 'SONARRAPIKEY' in os.environ: SONARRAPIKEY = os.environ['SONARRAPIKEY']
-    if 'RADARRURL' in os.environ: RADARRURL = os.environ['RADARRURL']
-    if 'RADARRAPIKEY' in os.environ: RADARRAPIKEY = os.environ['RADARRAPIKEY']
-    if 'LOGGING' in os.environ: LOGGING=os.environ['LOGGING']
-    if 'AUTO_FILL_MAPPING' in os.environ: AUTO_FILL_MAPPING=os.environ['AUTO_FILL_MAPPING']
-    ANILIST_USERNAME = os.environ['ANILIST_USERNAME']
-    MONITOR = os.environ['MONITOR']
-    RETRY = os.environ['RETRY']
-    
 
 #if logging is true
 if LOGGING is not None:
@@ -489,11 +464,6 @@ def sendToSonarr(newShows,mapping,sonarrTag,sonarrlist):
             add_show_to_sonarr(show[0],show[1],sonarrTag,show[2],show[3])
         else:
             add_show_to_sonarr(show[0],show[1],sonarrTag,show[2])
-            
-if os.path.exists('.env'):
-    pr("Found .env file, loading variables")
-else:
-    pr("No .env file found, loading variables from environment")
     
 def main():
     if LOGGING: pr("Getting AniList for " + ANILIST_USERNAME)
