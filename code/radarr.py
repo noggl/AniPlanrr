@@ -9,13 +9,12 @@ def getRadarrMovies(RADARRURL, RADARRAPIKEY):
         RADARRURL + "v3/movie?apikey=" + RADARRAPIKEY)
     # create list from response title and id
     if response.status_code != 200:
-        pr("Error: AniList response is not 200")
+        pr("Error: Radarr response is not 200")
         return
     movieList = []
     if LOGGING:
         # write response to file
-        with open(logPath + 'movies.json', 'w') as f:
-            json.dump(response.json(), f)
+        dumpVar('getRadarrResponse', response.json())
     for i in response.json():
         movieList.append([cleanText(i['title']), i['year'], i['tmdbId']])
     return movieList
@@ -35,33 +34,20 @@ def add_movie_to_radarr(title, tmdb_id, tag, anidb_id):
         'monitored': True,
         'addOptions': {'monitor': 'movieOnly', "searchForMovie": True}
     }
-    # write params to file
-    with open(logPath + 'params.json', 'w') as outfile:
-        json.dump(params, outfile)
+    if LOGGING:
+        # write params to file
+        dumpVar('addMovieParams', params)
     response = requests.post(
         RADARRURL + 'v3/movie?apikey=' + RADARRAPIKEY, json=params)
     # If resposne is 201, print success
     if response.status_code == 201:
         pr(title + " was added to Radarr")
         if AUTO_FILL_MAPPING:
-            # write title, anidb_id, tvdbID to mapping.csv\
-            writing = title + ";" + str(anidb_id) + ";" + str(tmdb_id) + ";1"
-            # if text is not already one of the lines in mappings.csv
-            if not any(writing in s for s in open('mapping.csv')):
-                pr("Auto-Fill Turned on, Writing " + writing + " to mapping.csv")
-                # if not the first line in mapping.csv, add a new line
-                if os.stat(configPath + 'mapping.csv').st_size != 0:
-                    with open(configPath + 'mapping.csv', 'a') as f:
-                        f.write("\r")
-                with open(configPath + 'mapping.csv', 'a') as f:
-                    f.write(str(title) + ";" + str(anidb_id) +
-                            ";" + str(tmdb_id) + ";1")
+            # write title, anidb_id, tvdbID to mapping
+            addMapping(title, anidb_id, tmdb_id, 1)
     else:
         pr("ERRROR: " + title + " could not be added to Radarr")
-        # write response to file
-        with open(logPath + 'response.json', 'w') as outfile:
-            json.dump(response.json(), outfile)
-        # print response.errorMessage
+        dumpVar('addMovieResponse', response.json())
 
 
 def get_id_from_radarr(title, year, anidb_id):
@@ -108,11 +94,10 @@ def sendToRadarr(newMovies, mapping, radarrTag, radarrList):
             map = mapping[[i[1] for i in mapping].index(movie[2])]
             pr(movie[0] + " is mapped to " + str(map[2]))
             moviedblist.append([map[0], map[2], map[1]])
-
         else:
             tmp = get_id_from_radarr(movie[0], movie[1], movie[2])
             if tmp is not None:
-                pr("ID received from radarr " + movie[0])
+                pr("ID received from radarr for " + movie[0])
                 moviedblist.append(tmp)
 
     for movie in moviedblist:

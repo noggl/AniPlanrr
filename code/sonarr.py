@@ -47,8 +47,8 @@ def add_show_to_sonarr(title, tvdb_id, tag, anidb_id, season=None):
                                 "searchForMissingEpisodes": 'true'}
 
     # write params to file
-    with open(logPath + 'params.json', 'w') as outfile:
-        json.dump(params, outfile)
+    if LOGGING:
+        dumpVar('addShowParams', params)
     response = requests.post(
         SONARRURL + 'series?apikey=' + SONARRAPIKEY, data=str(params).encode('utf-8'))
     # If resposne is 201, print success
@@ -56,38 +56,22 @@ def add_show_to_sonarr(title, tvdb_id, tag, anidb_id, season=None):
         pr(title + " was added to Sonarr")
         entry = response.json()
         if season is not None:
-            # wait for 10 seconds
+            # wait for 4 seconds
             time.sleep(4)
             pr("season is" + str(season))
             updateSonarrSeason(entry['id'], season, tag, anidb_id)
-
         else:
             if AUTO_FILL_MAPPING:
-                writing = entry['title'] + ";" + \
-                    str(anidb_id) + ";" + str(entry['tvdbId']) + ";1"
-                # write title, anidb_id, tvdbID to mapping.csv
-                # if text is not already one of the lines in mappings.csv
-                if not any(writing in s for s in open('mapping.csv')):
-                    pr("Auto-Fill Turned on, Writing " +
-                       writing + " to mapping.csv")
-                    # if not the first line in mapping.csv, add a new line
-                    if os.stat(configPath + 'mapping.csv').st_size != 0:
-                        with open(configPath + 'mapping.csv', 'a') as f:
-                            f.write("\r")
-                    with open(configPath + 'mapping.csv', 'a') as f:
-                        f.write(entry['title'] + ";" + str(anidb_id) +
-                                ";" + str(entry['tvdbId']) + ";1")
+                addMapping(title, tvdb_id, anidb_id, 1)
     else:
         pr("ERRROR: " + title + " could not be added to Sonarr")
         # write response to file
-        with open(logPath + 'response.json', 'w') as outfile:
-            json.dump(response.json(), outfile)
-        # print response.errorMessage
+        if LOGGING:
+            dumpVar('addShowResponse', response.json())
 
 
 def get_id_from_sonarr(title, year, anidb_id):
     search_string = title.replace(' ', '%20') + '%20' + str(year)
-    # pr(search_string)
     response = requests.get(
         SONARRURL + 'series/lookup?apikey=' + SONARRAPIKEY + '&term=' + search_string)
     sonarrTitle = cleanText(response.json()[0]['title'])
@@ -123,26 +107,13 @@ def updateSonarrSeason(sonarrid, season, tag, anidb_id):
         pr(title + " season " + str(season) + " was added to Sonarr")
         if AUTO_FILL_MAPPING:
             # write title, anidb_id, tvdbID to mappings.csv
-            writing = entry['title'] + ";" + \
-                str(anidb_id) + ";" + str(entry['tvdbId']) + ";" + str(season)
-            # write title, anidb_id, tvdbID to mapping.csv
-            # if text is not already one of the lines in mappings.csv
-            if not any(writing in s for s in open('mapping.csv')):
-                pr("Auto-Fill Turned on, Writing " + writing + " to mapping.csv")
-                # if not the first line in mapping.csv, add a new line
-                if os.stat(configPath + 'mapping.csv').st_size != 0:
-                    with open(configPath + 'mapping.csv', 'a') as f:
-                        f.write("\r")
-                with open(configPath + 'mapping.csv', 'a') as f:
-                    f.write(entry['title'] + ";" + str(anidb_id) +
-                            ";" + str(entry['tvdbId']) + ";" + str(season))
+            addMapping(title, anidb_id, entry['tvdbId'], season)
     else:
         pr("ERRROR: " + title + " season " +
            str(season) + " could not be added to Sonarr")
         # write response to file
-        with open(logPath + 'response.json', 'w') as outfile:
-            json.dump(response.json(), outfile)
-        # print response.errorMessage
+        if LOGGING:
+            dumpVar('updateSeasonResponse', response.json())
 
 
 def getSonarrTagId(tag_name):
@@ -177,7 +148,7 @@ def sendToSonarr(newShows, mapping, sonarrTag, sonarrlist):
         else:
             tmp = get_id_from_sonarr(show[0], show[1], show[2])
             if tmp is not None:
-                pr("ID received from sonarr " + show[0])
+                pr("ID received from sonarr for " + show[0])
                 tvdblist.append(tmp)
     # if id is in sonarrlist's third object, add to ignorelist
     for show in tvdblist:
