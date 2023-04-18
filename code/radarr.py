@@ -16,11 +16,12 @@ def getRadarrList(RADARRURL, RADARRAPIKEY):
         # write response to file
         dumpVar('getRadarrResponse', response.json())
     for i in response.json():
-        movieList.append([cleanText(i['title']), i['year'], i['tmdbId']])
+        movieList.append(
+            {'title': cleanText(i['title']), 'year': i['year'], 'tmdbId': i['tmdbId']})
     return movieList
 
 
-def add_movie_to_radarr(title, tmdb_id, tag, anidb_id):
+def add_movie_to_radarr(title, tmdb_id, tag, anilistId):
     pr("Adding " + title + " to Radarr")
     # print variables
 
@@ -43,14 +44,14 @@ def add_movie_to_radarr(title, tmdb_id, tag, anidb_id):
     if response.status_code == 201:
         pr(title + " was added to Radarr")
         if AUTO_FILL_MAPPING:
-            # write title, anidb_id, tvdbID to mapping
-            addMapping(title, anidb_id, tmdb_id, 1)
+            # write title, anilistId, tvdbID to mapping
+            addMapping(title, anilistId, tmdb_id, 1)
     else:
         pr("ERRROR: " + title + " could not be added to Radarr")
         dumpVar('addMovieResponse', response.json())
 
 
-def get_id_from_radarr(title, year, anidb_id):
+def get_id_from_radarr(title, year, anilistId):
     search_string = title.replace(' ', '%20') + '%20' + str(year)
     # pr(search_string)
     response = requests.get(
@@ -58,7 +59,7 @@ def get_id_from_radarr(title, year, anidb_id):
     # pr(response.json())
     radarrTitle = cleanText(response.json()[0]['title'])
     if radarrTitle == title.lower():
-        return [response.json()[0]['title'], response.json()[0]['tmdbId'], anidb_id]
+        return [response.json()[0]['title'], response.json()[0]['tmdbId'], anilistId]
     else:
         # print the two titles
         pr("TMDB ID " + str(response.json()[0]['tmdbId']) + "(" + cleanText(

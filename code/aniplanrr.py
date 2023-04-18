@@ -8,9 +8,6 @@ from sonarr import *
 # if logging is true
 if LOGGING is not None:
     pr("Logging is enabled")
-    # create log folder
-    if not os.path.exists('log'):
-        os.makedirs('log')
 else:
     pr("Logging is disabled")
 
@@ -23,19 +20,21 @@ def main():
         pr("Getting AniList for " + ANILIST_USERNAME)
     [aniList, aniMovieList] = getAniList(str(ANILIST_USERNAME))
     # filter anilist if anilist[2] is in ignorelist
-    aniList = [x for x in aniList if x[2] not in ignoreList]
-    aniMovieList = [x for x in aniMovieList if x[2] not in ignoreList]
+    aniList = [x for x in aniList if x['anilistId'] not in ignoreList]
+    aniMovieList = [
+        x for x in aniMovieList if x['anilistId'] not in ignoreList]
     if SONARRURL:
         if LOGGING:
             pr("Getting Sonarr List")
         sonarrList = getSonarrList(SONARRURL, SONARRAPIKEY)
-        sonarrTag = getSonarrTagId("fromanilist")
-        newShowList = diffList(aniList, sonarrList)
+        newShowList = diffDicts(aniList, sonarrList)
         if LOGGING:
             pr("Found " + str(len(newShowList)) + " new shows to add to Sonarr")
         # send each item in newShows to get_id_from_sonarr
-        sendToSonarr(newShowList, mapping, sonarrTag, sonarrList)
-    if RADARRURL:
+        sendToSonarr(newShowList, mapping, sonarrList)
+
+
+"""     if RADARRURL:
         if LOGGING:
             pr("Getting Radarr List")
         radarrList = getRadarrList(RADARRURL, RADARRAPIKEY)
@@ -43,8 +42,7 @@ def main():
         newMoviesList = diffList(aniMovieList, radarrList)
         if LOGGING:
             pr("Found " + str(len(newMoviesList)) + " new movies to add to Radarr")
-
-        sendToRadarr(newMoviesList, mapping, radarrTag, radarrList)
+        sendToRadarr(newMoviesList, mapping, radarrTag, radarrList) """
 
 
 if __name__ == "__main__":

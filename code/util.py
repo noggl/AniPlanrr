@@ -29,6 +29,9 @@ logPath = configPath+'log/'
 def pr(string):
     print(string)
     if LOGGING is not None:
+        # create log folder
+        if not os.path.exists(logPath):
+            os.makedirs(logPath)
         with open(logPath + 'log.txt', 'a') as f:
             # if file is not empty, add newline
             if os.stat(logPath + 'log.txt').st_size != 0:
@@ -78,8 +81,8 @@ def loadMappingList():
                 if not arr[1].isdigit() or not arr[2].isdigit() or not arr[3].isdigit():
                     pr("Error: mapping.csv is not formatted correctly")
                 else:
-                    mapping.append(
-                        [arr[0], int(arr[1]), int(arr[2]), int(arr[3])])
+                    mapping.append({'title': arr[0], 'anilistId': int(
+                        arr[1]), 'tmdb_or_tvdb_Id': int(arr[2]), 'season': int(arr[3])})
     return mapping
 
 
@@ -117,6 +120,13 @@ def diffList(list1, list2):
 
 
 def dumpVar(name, var):
+    # create log folder
+    if not os.path.exists(logPath):
+        os.makedirs(logPath)
+    # if file doesnt exist, create it
+    if not os.path.exists(logPath + name + '-dump.txt'):
+        with open(logPath + name + '-dump.txt', 'w') as f:
+            f.write('')
     with open(logPath + name + '-dump.txt', 'a') as f:
         # if file is not empty, add newline
         pr("Dumping " + name + " to " + name + "-dump.txt")
@@ -127,20 +137,59 @@ def dumpVar(name, var):
                 time.localtime()) + '\n' + str(var))
 
 
-def addMapping(title, anidb_id, tmdb_id, season):
+def addMapping(item):
     mapping = loadMappingList()
-    # if mapping doesn't already exist
-    if [title, anidb_id, tmdb_id, season] not in mapping:
+    # if mapping['anilistId] isn't already in mapping list
+    if item['anilistId'] not in [i['anilistId'] for i in mapping]:
+        # if tmdb_or_tvdb_Id exists, set newID to it, otherwise, set tmdbId to it
+        if 'tmdb_or_tvdb_Id' in item:
+            newId = item['tmdb_or_tvdb_Id']
+        if 'tmdbId' in item:
+            newId = item['tmdbId']
+        if 'tvdbId' in item:
+            newId = item['tvdbId']
+        else:
+            pr("Error: " + item['title'] + " has no tmdbId or tvdbId")
+            return
+    if 'season' not in item:
+        item['season'] = 1
         # add mapping to mapping.csv
-        pr("Adding mapping: " + title + " " + str(anidb_id) +
-           " " + str(tmdb_id) + " " + str(season))
+        pr("Adding mapping: " + item['title'] + " " + str(item['anilistId']) +
+            " " + str(newId) + " " + str(item['season']))
         # if not the first line in mapping.csv, add a new line
         if os.stat(configPath + 'mapping.csv').st_size != 0:
             with open(configPath + 'mapping.csv', 'a') as f:
                 f.write("\r")
         with open(configPath + 'mapping.csv', 'a') as f:
-            f.write(str(title) + ";" + str(anidb_id) +
-                    ";" + str(tmdb_id) + ";" + str(season))
+            f.write(item['title'] + ";" + str(item['anilistId']) +
+                    ";" + str(newId) + ";" + str(item['season']))
+
+
+def compareDicts(dict1, dict2):
+    # find which dict is smaller
+    if len(dict1) < len(dict2):
+        small = dict1
+        big = dict2
     else:
-        pr("Mapping already exists: " + title + " " + str(anidb_id) +
-           " " + str(tmdb_id) + " " + str(season))
+        small = dict2
+        big = dict1
+    for key in small:
+        if key in big:
+            # if values are strings
+            if isinstance(small[key], str) and isinstance(big[key], str):
+                if cleanText(small[key]) != cleanText(big[key]):
+                    return False
+            else:
+                if small[key] != big[key]:
+                    return False
+    return True
+
+
+def diffDicts(dict1, dict2):
+    # It might be better to not have the int and error parts and just keep the cleanText for string, passing the other checks through normally
+    diff = []
+    for i in dict1:
+        # if there is no matching object in dict2, append it to diff
+        if not any(compareDicts(i, j) for j in dict2):
+            diff.append(i)
+    return diff

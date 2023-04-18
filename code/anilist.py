@@ -1,5 +1,14 @@
 import requests
-from util import pr, cleanText
+from util import pr
+
+
+def convertToDict(entry):
+    if entry['media']['title']['english'] is not None:
+        return {'title':
+                entry['media']['title']['english'], 'year': entry['media']['startDate']['year'], 'anilistId': entry['media']['id']}
+    else:
+        return {'title':
+                entry['media']['title']['romaji'], 'year': entry['media']['startDate']['year'], 'anilistId': entry['media']['id']}
 
 
 def getAniList(username):
@@ -56,17 +65,7 @@ def getAniList(username):
     titleYearListMovies = []
     for entry in entries['entries']:
         if entry['media']['format'] == "TV":
-            if entry['media']['title']['english'] is not None:
-                titleYearListTV.append([cleanText(
-                    entry['media']['title']['english']), entry['media']['startDate']['year'], entry['media']['id']])
-            else:
-                titleYearListTV.append([cleanText(
-                    entry['media']['title']['romaji']), entry['media']['startDate']['year'], entry['media']['id']])
+            titleYearListTV.append(convertToDict(entry))
         if entry['media']['format'] == "MOVIE":
-            if entry['media']['title']['english'] is not None:
-                titleYearListMovies.append([cleanText(
-                    entry['media']['title']['english']), entry['media']['startDate']['year'], entry['media']['id']])
-            else:
-                titleYearListMovies.append([cleanText(
-                    entry['media']['title']['romaji']), entry['media']['startDate']['year'], entry['media']['id']])
+            titleYearListMovies.append(convertToDict(entry))
     return [titleYearListTV, titleYearListMovies]
