@@ -10,7 +10,7 @@ services:
       - RADARRURL=http://192.168.1.1:7878/api/  # Radarr URL
       - RADARRAPIKEY=your_api_key               # Radarr API Key
       - ANILIST_USERNAME=yourname               # AniList Username
-      - MONITOR=all                             # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot)
+      - MONITOR=all                             # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) all is recommended, other flags may be broken
       - RETRY=True                              # If True, will write failed shows to ignore file to ignore next time
       - INTERVAL=3600                           # Interval in seconds to run the script on (this will run it every hour)
     volumes:
