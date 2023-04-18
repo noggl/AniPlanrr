@@ -1,4 +1,3 @@
-# Here we define our query as a multi-line string
 import time
 import requests
 import json
@@ -14,16 +13,6 @@ else:
     #set config path string to /config
     configPath = '/config/'
 
-#if ignore.csv doesn't exist, create it
-if not os.path.exists(configPath + 'ignore.csv'):
-    with open(configPath + 'ignore.csv', 'w') as f:
-        f.write('')
-#if mapping.csv doesn't exist, create it
-if not os.path.exists(configPath + 'mapping.csv'):
-    with open(configPath + 'mapping.csv', 'w') as f:
-        f.write('')
-logPath=configPath+'log/'
-
 def pr(string):
     print(string)
     if LOGGING is not None:
@@ -33,6 +22,20 @@ def pr(string):
                 f.write('\n')
             #write timestamp + string
             f.write(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ': ' + string)
+
+#if ignore.csv doesn't exist, create it
+if not os.path.exists(configPath + 'ignore.csv'):
+    pr("ignore.csv doesn't exist, creating it")
+    with open(configPath + 'ignore.csv', 'w') as f:
+        f.write('')
+#if mapping.csv doesn't exist, create it
+if not os.path.exists(configPath + 'mapping.csv'):
+    pr("mapping.csv doesn't exist, creating it")
+    with open(configPath + 'mapping.csv', 'w') as f:
+        f.write('')
+logPath=configPath+'log/'
+
+
 
 # Set all Variables to None initially
 SONARRURL = None
@@ -92,8 +95,8 @@ with open(configPath + 'ignore.csv', 'r') as f:
             #check that id is an int
             if not arr[1].isdigit():
                 pr("Error: ignore.csv is not formatted correctly")
+            else:
                 ignoreList.append(int(arr[1]))
-
 #import custom mapping array from mapping.csv
 mapping = []
 with open(configPath + 'mapping.csv', 'r') as f:
