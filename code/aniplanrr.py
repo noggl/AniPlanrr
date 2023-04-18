@@ -24,17 +24,6 @@ LOGGING = os.getenv('LOGGING')
 RADARRURL = os.getenv('RADARRURL')
 RADARRAPIKEY = os.getenv('RADARRAPIKEY')
 
-# if ignore.csv doesn't exist, create it
-if not os.path.exists(configPath + 'ignore.csv'):
-    pr("ignore.csv doesn't exist, creating it")
-    with open(configPath + 'ignore.csv', 'w') as f:
-        f.write('')
-# if mapping.csv doesn't exist, create it
-if not os.path.exists(configPath + 'mapping.csv'):
-    pr("mapping.csv doesn't exist, creating it")
-    with open(configPath + 'mapping.csv', 'w') as f:
-        f.write('')
-
 # if logging is true
 if LOGGING is not None:
     pr("Logging is enabled")

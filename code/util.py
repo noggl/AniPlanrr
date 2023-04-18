@@ -38,6 +38,11 @@ def pr(string):
 
 
 def loadIgnoreList():
+    # if ignore.csv doesn't exist, create it
+    if not os.path.exists(configPath + 'ignore.csv'):
+        pr("ignore.csv doesn't exist, creating it")
+        with open(configPath + 'ignore.csv', 'w') as f:
+            f.write('')
     ignoreList = []
     with open(configPath + 'ignore.csv', 'r') as f:
         for line in f:
@@ -55,6 +60,11 @@ def loadIgnoreList():
 
 
 def loadMappingList():
+    # if mapping.csv doesn't exist, create it
+    if not os.path.exists(configPath + 'mapping.csv'):
+        pr("mapping.csv doesn't exist, creating it")
+        with open(configPath + 'mapping.csv', 'w') as f:
+            f.write('')
     mapping = []
     with open(configPath + 'mapping.csv', 'r') as f:
         for line in f:
@@ -114,3 +124,22 @@ def dumpVar(name, var):
         # write timestamp + string
         f.write(time.strftime("%Y-%m-%d %H:%M:%S",
                 time.localtime()) + '\n' + str(var))
+
+
+def addMapping(title, anidb_id, tmdb_id, season):
+    mapping = loadMappingList()
+    # if mapping doesn't already exist
+    if [title, anidb_id, tmdb_id, season] not in mapping:
+        # add mapping to mapping.csv
+        pr("Adding mapping: " + title + " " + str(anidb_id) +
+           " " + str(tmdb_id) + " " + str(season))
+        # if not the first line in mapping.csv, add a new line
+        if os.stat(configPath + 'mapping.csv').st_size != 0:
+            with open(configPath + 'mapping.csv', 'a') as f:
+                f.write("\r")
+        with open(configPath + 'mapping.csv', 'a') as f:
+            f.write(str(title) + ";" + str(anidb_id) +
+                    ";" + str(tmdb_id) + ";" + str(season))
+    else:
+        pr("Mapping already exists: " + title + " " + str(anidb_id) +
+           " " + str(tmdb_id) + " " + str(season))
