@@ -102,7 +102,7 @@ def cleanText(string):
     return re.sub(r'[^\w\s]', '', str(string)).lower()
 
 
-def getListDifference(list1, list2):
+def diffList(list1, list2):
     # ignore third element of every object
     list1_strip = [i[:2] for i in list1]
     list2_strip = [i[:2] for i in list2]

@@ -4,7 +4,7 @@ import os
 from util import *
 
 
-def getSonarrSeries(SONARRURL, SONARRAPIKEY):
+def getSonarrList(SONARRURL, SONARRAPIKEY):
     response = requests.get(
         SONARRURL + "series?apikey=" + SONARRAPIKEY)
     # create list from response title and id

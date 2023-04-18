@@ -4,7 +4,7 @@ import os
 from util import *
 
 
-def getRadarrMovies(RADARRURL, RADARRAPIKEY):
+def getRadarrList(RADARRURL, RADARRAPIKEY):
     response = requests.get(
         RADARRURL + "v3/movie?apikey=" + RADARRAPIKEY)
     # create list from response title and id
