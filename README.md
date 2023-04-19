@@ -7,28 +7,27 @@ This script will add any shows from your AniList planning list to Sonarr and Rad
 It is highly recommended to use [RickDB/PlexMALSync](https://github.com/RickDB/PlexMALSync) to move watched shows to your watching/completed list.
 
 # Getting Started
-There are currently no prebuilt docker images, so regardless of the method of running the script, (docker or local), you'll need to clone the repo.
 ## Running in Docker (Recommended)
-After cloning the repo, you can use the included docker-compose file to run the script in a docker container.
+You can use the included docker-compose file to run the script in a docker container.
 ```
 version: '3.7'
 services:
   aniplanrr:
     container_name: aniplanrr
-    build: .
+    image: ghcr.io/noggl/aniplanrr:main
     restart: unless-stopped
     environment:
-      - SONARRURL=http://192.168.1.1:8989/api/  # Sonarr URL
-      - SONARRAPIKEY=your_api_key               # Sonarr API Key
-      - RADARRURL=http://192.168.1.1:7878/api/  # Radarr URL
-      - RADARRAPIKEY=your_api_key               # Radarr API Key
-      - ANILIST_USERNAME=yourname               # AniList Username
-      - MONITOR=all                             # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) all is recommended, other flags may be broken
-      - RETRY=True                              # If True, will write failed shows to ignore file to ignore next time
-      - INTERVAL=3600                           # Interval in seconds to run the script on (this will run it every hour)
+      - SONARRURL=http://sonarr_url_and_port/api/   # Sonarr URL (ex: http://localhost:8989/api/)
+      - SONARRAPIKEY=your_api_key                   # Sonarr API Key
+      - RADARRURL=http://radarr_url_and_port/api/   # Radarr URL (ex: http://localhost:7878/api/)
+      - RADARRAPIKEY=your_api_key                   # Radarr API Key
+      - ANILIST_USERNAME=yourname                   # AniList Username
+      - MONITOR=all                                 # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) ALL IS RECOMMENDED, OTHER FLAGS MAY BE BROKEN
+      - RETRY=True                                  # If True, will write failed shows to ignore file to ignore next time
+      - INTERVAL=3600                               # Interval in seconds to run the script on (this will run it every hour)
     volumes:
       - '/etc/localtime:/etc/localtime:ro'
-      - 'config:/config'                        # Config file location
+      - 'path_to_config_folder:/config'             # Config folder location, can use 'config:/config' if running from repository root
 ```
 Once set to your liking, rename the file to `docker-compose.yaml` and run `docker-compose up` to start the container.
 ## Running Locally
@@ -39,7 +38,7 @@ SONARRAPIKEY="yourapikey"                   #Radarr API Key
 RADARRURL="http://192.168.1.1:7878/api/"    #Sonarr URL
 RADARRAPIKEY="yourapikey"                   #Sonarr API Key
 ANILIST_USERNAME="yourusername"             #AniList Username
-MONITOR='all'                               #Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot)
+MONITOR='all'                               #Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) ALL IS RECOMMENDED, OTHER FLAGS MAY BE BROKEN
 RETRY=True                                  #If True, will write failed shows to ignore file to ignore next time
 ```
 The config files will be saved to the `config` directory in the repo. You can edit the example files in that folder and remove the .example suffix to use them.

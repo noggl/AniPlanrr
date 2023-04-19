@@ -1,18 +1,18 @@
 version: '3.7'
 services:
-  aniplanningtosonarr:
-    container_name: aniplanningtosonarr
-    build: .
+  aniplanrr:
+    container_name: aniplanrr
+    image: ghcr.io/noggl/aniplanrr:main
     restart: unless-stopped
     environment:
-      - SONARRURL=http://192.168.1.1:8989/api/  # Sonarr URL
-      - SONARRAPIKEY=your_api_key               # Sonarr API Key
-      - RADARRURL=http://192.168.1.1:7878/api/  # Radarr URL
-      - RADARRAPIKEY=your_api_key               # Radarr API Key
-      - ANILIST_USERNAME=yourname               # AniList Username
-      - MONITOR=all                             # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) all is recommended, other flags may be broken
-      - RETRY=True                              # If True, will write failed shows to ignore file to ignore next time
-      - INTERVAL=3600                           # Interval in seconds to run the script on (this will run it every hour)
+      - SONARRURL=http://sonarr_url_and_port/api/   # Sonarr URL (ex: http://localhost:8989/api/)
+      - SONARRAPIKEY=your_api_key                   # Sonarr API Key
+      - RADARRURL=http://radarr_url_and_port/api/   # Radarr URL (ex: http://localhost:7878/api/)
+      - RADARRAPIKEY=your_api_key                   # Radarr API Key
+      - ANILIST_USERNAME=yourname                   # AniList Username
+      - MONITOR=all                                 # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) ALL IS RECOMMENDED, OTHER FLAGS MAY BE BROKEN
+      - RETRY=True                                  # If True, will write failed shows to ignore file to ignore next time
+      - INTERVAL=3600                               # Interval in seconds to run the script on (this will run it every hour)
     volumes:
       - '/etc/localtime:/etc/localtime:ro'
-      - 'config:/config'                        # Config file location
+      - 'path_to_config_folder:/config'             # Config folder location, can use 'config:/config' if running from repository root
