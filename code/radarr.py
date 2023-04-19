@@ -1,6 +1,4 @@
 import requests
-import json
-import os
 from util import *
 
 
@@ -15,55 +13,44 @@ def getRadarrList(RADARRURL, RADARRAPIKEY):
     if LOGGING:
         # write response to file
         dumpVar('getRadarrResponse', response.json())
+    # for each object in response
     for i in response.json():
-        movieList.append(
-            {'title': cleanText(i['title']), 'year': i['year'], 'tmdbId': i['tmdbId']})
+       movieList.append(i)
     return movieList
 
 
-def add_movie_to_radarr(title, tmdb_id, tag, anilistId):
-    pr("Adding " + title + " to Radarr")
-    # print variables
-
-    params = {
-        'tmdbId': tmdb_id,
-        'title': title,
-        'qualityProfileId': 1,
-        'path': '/movies/Anime/' + title,
-        'minimumAvailability': 'released',
-        'tags': [tag],
-        'monitored': True,
-        'addOptions': {'monitor': 'movieOnly', "searchForMovie": True}
-    }
+def addMovie(movie):
+    pr("Adding " + movie['title'] + " to Radarr")
+    if getRadarrTagId("fromanilist") not in movie['tags']:
+        movie['tags'].append(getRadarrTagId("fromanilist"))
+    movie['qualityProfileId'] = 1
+    movie['path'] = '/movies/Anime/' + movie['title']
+    movie['monitored'] = True
+    movie['addOptions'] = {'monitor': 'movieOnly', "searchForMovie": True}
     if LOGGING:
         # write params to file
-        dumpVar('addMovieParams', params)
+        dumpVar('addMovieParams', movie)
     response = requests.post(
-        RADARRURL + 'v3/movie?apikey=' + RADARRAPIKEY, json=params)
+        RADARRURL + 'v3/movie?apikey=' + RADARRAPIKEY, json=stripExtraKeys(movie))
     # If resposne is 201, print success
     if response.status_code == 201:
-        pr(title + " was added to Radarr")
+        pr(movie['title'] + " was added to Radarr")
         if AUTO_FILL_MAPPING:
-            # write title, anilistId, tvdbID to mapping
-            addMapping(title, anilistId, tmdb_id, 1)
+            # write title, anilistId, tmdbId to mapping
+            addMapping(movie)
     else:
-        pr("ERRROR: " + title + " could not be added to Radarr")
-        dumpVar('addMovieResponse', response.json())
+        pr("ERRROR: " + movie['title'] + " could not be added to Radarr")
+        if LOGGING:
+            dumpVar('addMovieResponse', response.json())
 
 
-def get_id_from_radarr(title, year, anilistId):
-    search_string = title.replace(' ', '%20') + '%20' + str(year)
-    # pr(search_string)
+def search(string):
+    search_string = string.replace(' ', '%20')
+    search_string = search_string.replace(':', '%3A')
     response = requests.get(
         RADARRURL + 'v3/movie/lookup?apikey=' + RADARRAPIKEY + '&term=' + search_string)
     # pr(response.json())
-    radarrTitle = cleanText(response.json()[0]['title'])
-    if radarrTitle == title.lower():
-        return [response.json()[0]['title'], response.json()[0]['tmdbId'], anilistId]
-    else:
-        # print the two titles
-        pr("TMDB ID " + str(response.json()[0]['tmdbId']) + "(" + cleanText(
-            response.json()[0]['title']) + ") seems wrong for " + title)
+    return response.json()[0]
 
 
 def getRadarrTagId(tag_name):
@@ -86,23 +73,40 @@ def getRadarrTagId(tag_name):
     return tag_id
 
 
-def sendToRadarr(newMovies, mapping, radarrTag, radarrList):
-    moviedblist = []
+def sendToRadarr(newMovies, mapping, radarrList):
+    listToAdd = []
     for movie in newMovies:
         if LOGGING:
-            pr("Looking for ID for " + movie[0])
-        if movie[2] in [i[1] for i in mapping]:
-            map = mapping[[i[1] for i in mapping].index(movie[2])]
-            pr(movie[0] + " is mapped to " + str(map[2]))
-            moviedblist.append([map[0], map[2], map[1]])
+            pr("Looking for ID for " + movie['title'])
+        # Mapping found for Movie
+        if movie['anilistId'] in [i['anilistId'] for i in mapping]:
+            map = mapping[[i['anilistId']
+                           for i in mapping].index(movie['anilistId'])]
+            # First check if movie is in radarrList (and therefore already in radarr)
+            if map['tmdb_or_tvdb_Id'] in [i['tmdbId'] for i in radarrList]:
+                # mapped movie was already in radarr
+                result = radarrList[[i['tmdbId']
+                                     for i in radarrList].index(map['tmdb_or_tvdb_Id'])]
+                result['anilistId'] = map['anilistId']
+                result['season'] = map['season']
+            else:
+                # Searching for mapped movie by tmdbId
+                result = search("tmdb:" + str(map['tmdb_or_tvdb_Id']))
+                result['season'] = map['season']
+                result['anilistId'] = movie['anilistId']
+            listToAdd.append(result)
+        # No mapping found for movie, searching by title
         else:
-            tmp = get_id_from_radarr(movie[0], movie[1], movie[2])
-            if tmp is not None:
-                pr("ID received from radarr for " + movie[0])
-                moviedblist.append(tmp)
-
-    for movie in moviedblist:
-        if movie[1] in [i[2] for i in radarrList]:
-            pr(movie[0] + " is already in Radarr, skipping")
-        else:
-            add_movie_to_radarr(movie[0], movie[1], radarrTag, movie[2])
+            print("Searching for " + movie['title'] + ' by title and year')
+            result = search(movie['title'] + ' ' + str(movie['year']))
+            if result is not None and compareDicts(result, movie):
+                pr("ID received from radarr for " + movie['title'])
+                result['anilistId'] = movie['anilistId']
+                listToAdd.append(result)
+            else:
+                pr("ID not received from radarr for " + movie['title'])
+                if not (RETRY):
+                    # add to ignore list
+                    addToIgnoreList(movie['title'], movie['anilistId'])  
+    for movie in listToAdd:
+        addMovie(movie)

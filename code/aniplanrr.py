@@ -1,5 +1,3 @@
-import os
-from dotenv import load_dotenv
 from util import *
 from anilist import *
 from radarr import *
@@ -33,16 +31,14 @@ def main():
         # send each item in newShows to get_id_from_sonarr
         sendToSonarr(newShowList, mapping, sonarrList)
 
-
-"""     if RADARRURL:
+    if RADARRURL:
         if LOGGING:
             pr("Getting Radarr List")
         radarrList = getRadarrList(RADARRURL, RADARRAPIKEY)
-        radarrTag = getRadarrTagId("fromanilist")
-        newMoviesList = diffList(aniMovieList, radarrList)
+        newMoviesList = diffDicts(aniMovieList, radarrList)
         if LOGGING:
             pr("Found " + str(len(newMoviesList)) + " new movies to add to Radarr")
-        sendToRadarr(newMoviesList, mapping, radarrTag, radarrList) """
+        sendToRadarr(newMoviesList, mapping, radarrList)
 
 
 if __name__ == "__main__":
