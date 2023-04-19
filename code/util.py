@@ -1,10 +1,10 @@
-# If in docker container
 import time
 import os
 from dotenv import load_dotenv
 import re
+from copy import copy
 
-
+# If in docker container
 if os.path.exists('config/.env'):
     # Assume repo structure
     configPath = 'config/'
@@ -104,20 +104,14 @@ def addToIgnoreList(title, id):
 def cleanText(string):
     return re.sub(r'[^\w\s]', '', str(string)).lower()
 
-
-def diffList(list1, list2):
-    # ignore third element of every object
-    list1_strip = [i[:2] for i in list1]
-    list2_strip = [i[:2] for i in list2]
-    # Get index of every object in list1 that is not in list2
-    diff = []
-    for i in list1_strip:
-        if i not in list2_strip:
-            diff.append(list1_strip.index(i))
-
-    # return list of objects in list1 that are not in list2
-    return [list1[i] for i in diff]
-
+def stripExtraKeys(item):
+    entry = copy(item)
+    # removes anilistId and season from show/movie
+    if 'anilistId' in entry:
+        entry.pop('anilistId', None)
+    if 'season' in entry:
+        entry.pop('season', None)
+    return entry
 
 def dumpVar(name, var):
     # create log folder
@@ -148,7 +142,7 @@ def addMapping(item):
             newId = item['tmdbId']
         if 'tvdbId' in item:
             newId = item['tvdbId']
-        else:
+        if 'tmdb_or_tvdb_Id' not in item and 'tmdbId' not in item and 'tvdbId' not in item:
             pr("Error: " + item['title'] + " has no tmdbId or tvdbId")
             return
     if 'season' not in item:

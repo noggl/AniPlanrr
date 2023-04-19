@@ -1,4 +1,4 @@
-from copy import copy
+
 import requests
 from util import *
 
@@ -11,21 +11,15 @@ def getSonarrList(SONARRURL, SONARRAPIKEY):
         pr("Error: Sonarr response is not 200")
         return
     seriesList = []
+    if LOGGING:
+        # write response to file
+        dumpVar('getSonarrResponse', response.json())
     # for each object in response
     for i in response.json():
         # if seriesType=anime
         if i['seriesType'] == "anime":
             seriesList.append(i)
     return seriesList
-
-
-def stripExtraKeys(show):
-    entry = copy(show)
-    # removes anilistId and season from show
-    entry.pop('anilistId', None)
-    entry.pop('season', None)
-    return entry
-
 
 def setSeasons(show):
     # Not sure if this is how I want to do this. If I don't have the season==1,
@@ -54,9 +48,10 @@ def addShow(show):
     if getSonarrTagId("fromanilist") not in show['tags']:
         show['tags'].append(getSonarrTagId("fromanilist"))
     show['profileId'] = 1
+    #set type to anime
+    show['seriesType'] = 'anime'
     show['path'] = '/tv/Anime/' + show['title']
     # write show to file
-    dumpVar('addShowShow', show)
     if LOGGING:
         dumpVar('addShowShow', show)
     response = requests.post(
@@ -133,13 +128,13 @@ def sendToSonarr(newShows, mapping, sonarrList):
     listToAdd = []
     for show in newShows:
         if LOGGING:
-            pr("Looking for ID for " + show[0])
+            pr("Looking for ID for " + show['title'])
         if show['anilistId'] in [i['anilistId'] for i in mapping]:
             map = mapping[[i['anilistId']
                            for i in mapping].index(show['anilistId'])]
             pr(show['title'] + " is mapped to " +
                str(map['title']) + " season " + str(map['season']))
-            # First check if show is in sonarrlist
+            # First check if show is in sonarrList (and therefore already in sonarr)
             if map['tmdb_or_tvdb_Id'] in [i['tvdbId'] for i in sonarrList]:
                 # mapped show was already in sonarr
                 result = sonarrList[[i['tvdbId']
