@@ -8,7 +8,7 @@ def getSonarrList(SONARRURL, SONARRAPIKEY):
         SONARRURL + "series?apikey=" + SONARRAPIKEY)
     # create list from response title and id
     if response.status_code != 200:
-        pr("Error: Sonarr response is" + response.status_code + ", not 200")
+        pr("Error: Sonarr response is" + str(response.status_code) + ", not 200")
         if LOGGING:
             # write response to file
             dumpVar('failedSonarrResponse', response.json())

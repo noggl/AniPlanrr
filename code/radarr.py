@@ -7,7 +7,7 @@ def getRadarrList(RADARRURL, RADARRAPIKEY):
         RADARRURL + "v3/movie?apikey=" + RADARRAPIKEY)
     # create list from response title and id
     if response.status_code != 200:
-        pr("Error: Radarr response is" + response.status_code + ", not 200")
+        pr("Error: Radarr response is" + str(response.status_code) + ", not 200")
         if LOGGING:
             # write response to file
             dumpVar('failedRadarrResponse', response.json())
