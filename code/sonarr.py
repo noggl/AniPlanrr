@@ -50,7 +50,9 @@ def addShow(show):
     show = setSeasons(show)
     if getSonarrTagId("fromanilist") not in show['tags']:
         show['tags'].append(getSonarrTagId("fromanilist"))
+    show['profileId'] = 1
     show['qualityProfileId'] = 1
+    show['languageProfileId'] = 1
     #set type to anime
     show['seriesType'] = 'anime'
     show['path'] = '/tv/Anime/' + show['title']
