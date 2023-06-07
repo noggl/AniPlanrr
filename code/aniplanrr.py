@@ -25,6 +25,10 @@ def main():
         if LOGGING:
             pr("Getting Sonarr List")
         sonarrList = getSonarrList(SONARRURL, SONARRAPIKEY)
+        if sonarrList is None:
+            pr("Sonarr List is empty")
+            #stop execution
+            return    
         newShowList = diffDicts(aniList, sonarrList)
         if LOGGING:
             pr("Found " + str(len(newShowList)) + " new shows to add to Sonarr")
@@ -35,6 +39,9 @@ def main():
         if LOGGING:
             pr("Getting Radarr List")
         radarrList = getRadarrList(RADARRURL, RADARRAPIKEY)
+        if radarrList is None:
+            pr("Radarr List is empty")
+            return
         newMoviesList = diffDicts(aniMovieList, radarrList)
         if LOGGING:
             pr("Found " + str(len(newMoviesList)) + " new movies to add to Radarr")
