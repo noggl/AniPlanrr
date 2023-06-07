@@ -5,7 +5,7 @@ from util import *
 
 def getSonarrList(SONARRURL, SONARRAPIKEY):
     response = requests.get(
-        SONARRURL + "series?apikey=" + SONARRAPIKEY)
+        SONARRURL + "v3/series?apikey=" + SONARRAPIKEY)
     # create list from response title and id
     if response.status_code != 200:
         pr("Error: Sonarr response is" + str(response.status_code) + ", not 200")
@@ -58,7 +58,7 @@ def addShow(show):
     if LOGGING:
         dumpVar('addShowShow', show)
     response = requests.post(
-        SONARRURL + 'series?apikey=' + SONARRAPIKEY, json=stripExtraKeys(show))
+        SONARRURL + 'v3/series?apikey=' + SONARRAPIKEY, json=stripExtraKeys(show))
     # If resposne is 201, print success
     if response.status_code == 201:
         pr(show['title'] + " was added to Sonarr")
@@ -76,7 +76,7 @@ def search(string):
     search_string = string.replace(' ', '%20')
     search_string = search_string.replace(':', '%3A')
     response = requests.get(
-        SONARRURL + 'series/lookup?apikey=' + SONARRAPIKEY + '&term=' + search_string)
+        SONARRURL + 'v3/series/lookup?apikey=' + SONARRAPIKEY + '&term=' + search_string)
     if LOGGING:
         dumpVar('searchResponse', response.json())
     return response.json()[0]
@@ -93,7 +93,7 @@ def updateSonarrSeason(show):
     show['addOptions'] = {'monitor': MONITOR,
                           "searchForMissingEpisodes": 'true'}
     response = requests.put(
-        SONARRURL + 'series/' + str(show['id']) + '?apikey=' + SONARRAPIKEY, json=stripExtraKeys(show))
+        SONARRURL + 'v3/series/' + str(show['id']) + '?apikey=' + SONARRAPIKEY, json=stripExtraKeys(show))
     # If resposne is 201, print success
     if response.status_code == 202:
         pr(show['title'] + " season " +
@@ -113,7 +113,7 @@ def getSonarrTagId(tag_name):
     params = {
         'label': tag_name
     }
-    response = requests.get(SONARRURL + 'tag?apikey=' + SONARRAPIKEY)
+    response = requests.get(SONARRURL + 'v3/tag?apikey=' + SONARRAPIKEY)
     # get id of tag labeled "fronAniList"
     tag_id = None
     for i in response.json():
@@ -122,7 +122,7 @@ def getSonarrTagId(tag_name):
     # if tag_id was not found, create it
     if tag_id is None:
         response = requests.post(
-            SONARRURL + 'tag?apikey=' + SONARRAPIKEY, data=str(params).encode('utf-8'))
+            SONARRURL + 'v3/tag?apikey=' + SONARRAPIKEY, data=str(params).encode('utf-8'))
         if response.status_code == 201:
             tag_id = response.json()['id']
     return tag_id

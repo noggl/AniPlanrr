@@ -172,13 +172,9 @@ def compareDicts(dict1, dict2):
             # if values are strings
             if isinstance(small[key], str) and isinstance(big[key], str):
                 if cleanText(small[key]) != cleanText(big[key]):
-                    if LOGGING:
-                        pr("Error: " + str(cleanText(small[key])) + " didn't match " + str(cleanText(big[key])))
                     return False
             else:
                 if small[key] != big[key]:
-                    if LOGGING:
-                        pr("Error: " + str(small[key]) + " didn't match " + str(big[key]))
                     return False
     return True
 

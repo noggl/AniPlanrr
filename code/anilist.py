@@ -1,5 +1,5 @@
 import requests
-from util import pr
+from util import pr, dumpVar, LOGGING
 
 
 def convertToDict(entry):
@@ -68,4 +68,7 @@ def getAniList(username):
             titleYearListTV.append(convertToDict(entry))
         if entry['media']['format'] == "MOVIE":
             titleYearListMovies.append(convertToDict(entry))
+    if LOGGING:
+        dumpVar('aniListTV', titleYearListTV)
+        dumpVar('aniListMovies', titleYearListMovies)
     return [titleYearListTV, titleYearListMovies]
