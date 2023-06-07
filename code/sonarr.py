@@ -81,7 +81,13 @@ def search(string):
         SONARRURL + 'v3/series/lookup?apikey=' + SONARRAPIKEY + '&term=' + search_string)
     if LOGGING:
         dumpVar('searchResponse', response.json())
-    return response.json()[0]
+    #if response is array return first element
+    if len(response.json()) > 0:
+        return response.json()[0]
+    else:
+        pr("Error: Sonarr response is not an array")
+        dumpVar('failedSonarrResponse', response.json())
+        return
 
 
 def updateSonarrSeason(show):

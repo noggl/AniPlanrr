@@ -52,8 +52,14 @@ def search(string):
     search_string = search_string.replace(':', '%3A')
     response = requests.get(
         RADARRURL + 'v3/movie/lookup?apikey=' + RADARRAPIKEY + '&term=' + search_string)
-    # pr(response.json())
-    return response.json()[0]
+    #if the list has at least one element
+    if len(response.json()) > 0:
+        return response.json()[0]
+    else:
+        pr("Error: Radarr response is not array")
+        if LOGGING:
+            dumpVar('failedSonarrResponse', response.json())
+        return
 
 
 def getRadarrTagId(tag_name):
