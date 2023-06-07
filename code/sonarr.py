@@ -77,7 +77,8 @@ def search(string):
     search_string = search_string.replace(':', '%3A')
     response = requests.get(
         SONARRURL + 'series/lookup?apikey=' + SONARRAPIKEY + '&term=' + search_string)
-    # get first result where ['seriesType'] == "anime"
+    if LOGGING:
+        dumpVar('searchResponse', response.json())
     return response.json()[0]
 
 
