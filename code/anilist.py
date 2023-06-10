@@ -14,12 +14,13 @@ def convertToDict(entry):
 def getAniList(username):
     query = query = """
                 query ($username: String) {
-                MediaListCollection(userName: $username, type: ANIME) {
+                MediaListCollection(userName: $username, type: ANIME, status: PLANNING) {
                     lists {
                     name
                     entries {
                         media{
                         id
+                        idMal
                         format
                         startDate {
                             year
@@ -50,11 +51,9 @@ def getAniList(username):
     if response.status_code != 200:
         pr("Error: AniList response is not 200")
         return
-    # find id of list with name "planned"
-    planned_id = next((index for (index, d) in enumerate(response.json()[
-                      'data']['MediaListCollection']['lists']) if d["name"] == "Planning"), None)
+    # filter down to entries of returned list
     entries = response.json(
-    )['data']['MediaListCollection']['lists'][planned_id]
+    )['data']['MediaListCollection']['lists'][0]
 
     # if name is not Planned, throw error
     if entries['name'] != "Planning":
