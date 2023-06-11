@@ -4,7 +4,7 @@ from radarr import *
 from sonarr import *
 
 # if logging is true
-if LOGGING is not None:
+if LOGGING:
     pr("Logging is enabled")
 else:
     pr("Logging is disabled")
@@ -32,7 +32,7 @@ def runRadarr(radarr, aniMovieList):
     radarrList = getRadarrList(radarr)
     if radarrList is None:
         pr("Radarr List is empty")
-        return
+        return False
     newMoviesList = diffDicts(aniMovieList, radarrList)
     if LOGGING:
         pr("Found " + str(len(newMoviesList)) + " new movies to add to Radarr")
