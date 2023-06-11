@@ -214,6 +214,8 @@ def dumpVar(name, var):
 
 
 def addMapping(item):
+    if LOGGING:
+        pr("Trying to map this item...")
     mapping = loadMappingList()
     # if mapping['anilistId] isn't already in mapping list
     if item['anilistId'] not in [i['anilistId'] for i in mapping]:
@@ -226,7 +228,7 @@ def addMapping(item):
             newId = item['tvdbId']
         if 'tmdb_or_tvdb_Id' not in item and 'tmdbId' not in item and 'tvdbId' not in item:
             pr("Error: " + item['title'] + " has no tmdbId or tvdbId")
-            return
+            return False
     if 'season' not in item:
         item['season'] = 1
         # add mapping to mapping.csv
@@ -239,6 +241,7 @@ def addMapping(item):
         with open(mappingFile, 'a') as f:
             f.write(item['title'] + ";" + str(item['anilistId']) +
                     ";" + str(newId) + ";" + str(item['season']))
+            return True
 
 
 def compareDicts(dict1, dict2):

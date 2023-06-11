@@ -101,8 +101,6 @@ def addShow(sonarr, show):
     if response.status_code == 201:
         pr(show['title'] + " was added to Sonarr")
         dumpVar('addShowResponse', response.json())
-        if AUTO_FILL_MAPPING:
-            addMapping(show)
     else:
         pr("ERRROR: " + show['title'] + " could not be added to Sonarr")
         # write response to file
@@ -145,9 +143,6 @@ def updateSonarrSeason(sonarr, show):
     if response.status_code == 202:
         pr(show['title'] + " season " +
            str(show['season']) + " was added to Sonarr")
-        if AUTO_FILL_MAPPING:
-            # write title, anilistId, tvdbID to mappings.csv
-            addMapping(show)
     else:
         pr("ERRROR: " + show['title'] + " season " +
            str(show['season']) + " could not be added to Sonarr")
@@ -179,7 +174,7 @@ def indexSonarrList(sonarr, newShows, mapping, sonarrList):
     listToAdd = []
     for show in newShows:
         if LOGGING:
-            pr("Asking Sonarr for ID for " + show['title'])
+                pr("Checking for existing mapping for " + show['title'])
         if show['anilistId'] in [i['anilistId'] for i in mapping]:
             # Declare result in advance
             result = False
@@ -208,12 +203,17 @@ def indexSonarrList(sonarr, newShows, mapping, sonarrList):
             if result:
                 listToAdd.append(result)
         else:
+            if LOGGING:
+                pr("Asking Sonarr for ID for " + show['title'])
             print("Searching for " + show['title'] + ' by title and year')
             result = search(sonarr, show['title'] + ' ' + str(show['year']))
             if result is not False and compareDicts(result, show):
                 pr("ID received from sonarr for " + show['title'])
                 result['anilistId'] = show['anilistId']
                 listToAdd.append(result)
+                # If there's no existing mapping, and we find one, check if we should map it now.
+                if AUTO_FILL_MAPPING:
+                    addMapping(result)
             else:
                 pr("ID not received from sonarr for " + show['title'])
                 if not (RETRY):
