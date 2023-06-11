@@ -3,6 +3,8 @@ import os
 from dotenv import load_dotenv
 import re
 from copy import copy
+import json
+import sqlite3
 
 # If in docker container
 if os.path.exists('config/.env'):
@@ -84,6 +86,84 @@ def loadMappingList():
                     mapping.append({'title': arr[0], 'anilistId': int(
                         arr[1]), 'tmdb_or_tvdb_Id': int(arr[2]), 'season': int(arr[3])})
     return mapping
+
+def getID(text):
+    regex = r'[0-9]*$'
+    match = re.search(regex, text)
+    match = int(match.group())
+    return match
+
+def loadAOD():
+    # if anime-offline-database-minified.json doesn't exist, create it
+    # Source https://github.com/manami-project/anime-offline-database
+    # BAD BUG - Should setup auto-download and update of this file at some point
+    if not os.path.exists(configPath + 'anime-offline-database-minified.json'):
+        pr("anime-offline-database-minified.json doesn't exist")
+        raise Exception("anime-offline-database-minified.json doesn't exist")
+    # Check if AOD-mini.json was created already
+    if not os.path.exists(configPath + 'anime.db'):
+        pr("anime.db doesn't exist, creating it from AOD-mini")
+        AOD = {}
+        with open(configPath + 'anime-offline-database-minified.json', 'r') as f:
+            AOD = json.load(f)
+            lastUpdate = AOD["lastUpdate"]
+            AOD = AOD["data"]
+            db = sqlite3.connect(configPath + 'anime.db')
+            # Create a cursor
+            c = db.cursor()
+            # Create a table
+            c.execute('CREATE TABLE data (id INTEGER PRIMARY KEY, title TEXT, type TEXT, idMal INTEGER, anidb INTEGER)')
+
+            # Insert the data into the table
+            for row in AOD:
+                entry = {
+                    'id': 0,
+                    'title': "Unk",
+                    'type': "Unk",
+                    'idMal': 0,
+                    'anidb': 0
+                }
+                for source in row['sources']:
+                    if re.match(r'.*anilist\.co', source):
+                        entry['id'] = getID(source)
+                    if re.match(r'.*myanimelist\.net', source):
+                        entry['idMal'] = getID(source)
+                    if re.match(r'.*anidb\.net', source):
+                        entry['anidb'] = getID(source)
+                if entry['id'] == 0:
+                    # if LOGGING:
+                    #     pr("Skipping an entry...")
+                    continue
+                # This list will 1:1 map from the AOD json to the anime.db
+                directTransfers = ['title', 'type']
+                for transfer in directTransfers:
+                    if transfer in row:
+                        entry[transfer] = row[transfer]
+                try:
+                    c.execute('INSERT INTO data (id, title, type, idMal, anidb) VALUES (?, ?, ?, ?, ?)', (entry['id'], entry['title'], entry['type'], entry['idMal'], entry['anidb']))
+                except:
+                    pr("Exception from SQLite")
+            db.commit()
+            pr("Made anime.db!")
+    else:
+        db = sqlite3.connect(configPath + 'anime.db')
+        c = db.cursor()
+    return c
+
+def searchDB(c, id):
+    id = str(id)
+    c.execute('SELECT * FROM data WHERE id = ' + id)
+    results = c.fetchall()
+    r = results[0]
+    entry = {
+                    'id': r[0],
+                    'title': r[1],
+                    'type': r[2],
+                    'idMal': r[3],
+                    'anidb': r[4]
+                }
+
+    return entry
 
 
 def addToIgnoreList(title, id):

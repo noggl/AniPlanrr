@@ -19,8 +19,14 @@ def main():
     [aniList, aniMovieList] = getAniList(str(ANILIST_USERNAME))
     # filter anilist if anilist[2] is in ignorelist
     aniList = [x for x in aniList if x['anilistId'] not in ignoreList]
-    aniMovieList = [
-        x for x in aniMovieList if x['anilistId'] not in ignoreList]
+    aniMovieList = [x for x in aniMovieList if x['anilistId'] not in ignoreList]
+    # Load cursor for Anime Offline Database
+    # aod = loadAOD() # loadAOD has a bug - Requires file to already exist, will not download it
+    # aodList = []
+    # if LOGGING:
+    #     pr("Getting AOD Listings")
+    # for anime in aniList:
+    #     aodList.append(searchDB(aod, anime['anilistId']))
     if SONARRURL:
         if LOGGING:
             pr("Getting Sonarr List")
@@ -28,7 +34,7 @@ def main():
         if sonarrList is None:
             pr("Sonarr List is empty")
             #stop execution
-            return    
+            return    # BUG: This will prevent radarr from running if sonarr fails
         newShowList = diffDicts(aniList, sonarrList)
         if LOGGING:
             pr("Found " + str(len(newShowList)) + " new shows to add to Sonarr")
