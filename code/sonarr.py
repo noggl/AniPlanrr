@@ -108,23 +108,32 @@ def addShow(sonarr, show):
             dumpVar('addShowResponse', response.json())
 
 
-def search(sonarr, string):
-    search_string = string.replace(' ', '%20')
-    search_string = search_string.replace(':', '%3A')
-    url = sonarr['APIURL'] + '/series/lookup?term=' + search_string + '&' + sonarr['APIKEY']
-    try:
-        response = requests.get(url)
-    except:
-        pr("Failed to search with url: " + url)
-    if LOGGING:
-        dumpVar('searchResponse', response.json())
-    #if response is array return first element
-    if len(response.json()) > 0:
-        return response.json()[0]
-    else:
-        pr("Error: Sonarr response is not an array")
-        dumpVar('failedSonarrResponse', response.json())
-        return False
+def search(sonarr, strings, year=False):
+    # If it's not a list, make it a list, so we don't search each letter.
+    if not isinstance(strings, list):
+        strings = [strings]
+    for string in strings:
+        if isinstance(string, dict):
+            string = str(list(string.values())[0])
+        if year:
+            string = string + ' ' + year
+        search_string = string.replace(' ', '%20')
+        search_string = search_string.replace(':', '%3A')
+        url = sonarr['APIURL'] + '/series/lookup?term=' + search_string + '&' + sonarr['APIKEY']
+        try:
+            response = requests.get(url)
+        except:
+            pr("Failed to search with url: " + url)
+        if LOGGING:
+            dumpVar('searchResponse', response.json())
+        #if response is array return first element
+        if len(response.json()) > 0:
+            return response.json()[0]
+        else:
+            pr("Error: Sonarr response is not an array")
+            dumpVar('failedSonarrResponse', response.json())
+            continue
+    return False
 
 
 def updateSonarrSeason(sonarr, show):
@@ -206,14 +215,18 @@ def indexSonarrList(sonarr, newShows, mapping, sonarrList):
             if LOGGING:
                 pr("Asking Sonarr for ID for " + show['title'])
             print("Searching for " + show['title'] + ' by title and year')
-            result = search(sonarr, show['title'] + ' ' + str(show['year']))
-            if result is not False and compareDicts(result, show):
-                pr("ID received from sonarr for " + show['title'])
-                result['anilistId'] = show['anilistId']
-                listToAdd.append(result)
-                # If there's no existing mapping, and we find one, check if we should map it now.
-                if AUTO_FILL_MAPPING:
-                    addMapping(result)
+            result = search(sonarr, show['titles'], str(show['year']))
+            if result:
+                if LOGGING:
+                    pr("Got some results!")
+                    dumpVar('sonarrSearch', result)
+                if compareDicts(result, show): # BUG - Even with great results, this is not always matching correctly
+                    pr("ID received from sonarr for " + show['title'])
+                    result['anilistId'] = show['anilistId']
+                    listToAdd.append(result)
+                    # If there's no existing mapping, and we find one, check if we should map it now.
+                    if AUTO_FILL_MAPPING:
+                        addMapping(result)
             else:
                 pr("ID not received from sonarr for " + show['title'])
                 if not (RETRY):
