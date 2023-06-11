@@ -26,7 +26,8 @@ LOGGING = os.getenv('LOGGING')
 RADARRURL = os.getenv('RADARRURL')
 RADARRAPIKEY = os.getenv('RADARRAPIKEY')
 
-logPath = configPath+'log/'
+logPath = configPath + 'log/'
+mappingFile = configPath + 'mapping.csv'
 
 
 def pr(string):
@@ -68,12 +69,12 @@ def loadIgnoreList():
 
 def loadMappingList():
     # if mapping.csv doesn't exist, create it
-    if not os.path.exists(configPath + 'mapping.csv'):
+    if not os.path.exists(mappingFile):
         pr("mapping.csv doesn't exist, creating it")
-        with open(configPath + 'mapping.csv', 'w') as f:
+        with open(mappingFile, 'w') as f:
             f.write('')
     mapping = []
-    with open(configPath + 'mapping.csv', 'r') as f:
+    with open(mappingFile, 'r') as f:
         for line in f:
             # check that file can be split into 4 parts
             if len(line.strip().split(';')) != 4:
@@ -232,10 +233,10 @@ def addMapping(item):
         pr("Adding mapping: " + item['title'] + " " + str(item['anilistId']) +
             " " + str(newId) + " " + str(item['season']))
         # if not the first line in mapping.csv, add a new line
-        if os.stat(configPath + 'mapping.csv').st_size != 0:
-            with open(configPath + 'mapping.csv', 'a') as f:
+        if os.stat(mappingFile).st_size != 0:
+            with open(mappingFile, 'a') as f:
                 f.write("\r")
-        with open(configPath + 'mapping.csv', 'a') as f:
+        with open(mappingFile, 'a') as f:
             f.write(item['title'] + ";" + str(item['anilistId']) +
                     ";" + str(newId) + ";" + str(item['season']))
 
