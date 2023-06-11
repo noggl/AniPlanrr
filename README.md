@@ -4,7 +4,7 @@ Sync an AniList user's "Plan to Watch" list to Sonarr and Radarr.
 
 This script will add any shows from your AniList planning list to Sonarr and Radarr. It will also update any shows that are already in Sonarr/Radarr to match the AniList planning list. This script will not remove shows from Sonarr/Radarr that are not in your AniList planning list, nor will it add shows to your AniList planning list.
 
-It is highly recommended to use [RickDB/PlexMALSync](https://github.com/RickDB/PlexMALSync) to move watched shows to your watching/completed list.
+It is highly recommended to use [RickDB/PlexMALSync](https://github.com/RickDB/PlexMALSync) or [vosmiic/jellyfin-ani-sync](https://github.com/vosmiic/jellyfin-ani-sync) to move watched shows to your watching/completed list.
 
 # Getting Started
 ## Running in Docker (Recommended)
@@ -17,9 +17,9 @@ services:
     image: ghcr.io/noggl/aniplanrr:main
     restart: unless-stopped
     environment:
-      - SONARRURL=http://sonarr_url_and_port/api/   # Sonarr URL (ex: http://localhost:8989/api/)
+      - SONARRURL=http://sonarr_url_and_port/       # Sonarr URL (ex: http://localhost:8989/)
       - SONARRAPIKEY=your_api_key                   # Sonarr API Key
-      - RADARRURL=http://radarr_url_and_port/api/   # Radarr URL (ex: http://localhost:7878/api/)
+      - RADARRURL=http://radarr_url_and_port/       # Radarr URL (ex: http://localhost:7878/)
       - RADARRAPIKEY=your_api_key                   # Radarr API Key
       - ANILIST_USERNAME=yourname                   # AniList Username
       - MONITOR=all                                 # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) ALL IS RECOMMENDED, OTHER FLAGS MAY BE BROKEN
@@ -33,9 +33,9 @@ Once set to your liking, rename the file to `docker-compose.yaml` and run `docke
 ## Running Locally
 If running locally, you will instead need to create a .env file. An example is provided in the repo as code/.env.example.
 ```
-SONARRURL="http://192.168.1.1:8989/api/"    #Radarr URL
+SONARRURL="http://192.168.1.1:8989/"        #Radarr URL
 SONARRAPIKEY="yourapikey"                   #Radarr API Key
-RADARRURL="http://192.168.1.1:7878/api/"    #Sonarr URL
+RADARRURL="http://192.168.1.1:7878/"        #Sonarr URL
 RADARRAPIKEY="yourapikey"                   #Sonarr API Key
 ANILIST_USERNAME="yourusername"             #AniList Username
 MONITOR='all'                               #Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) ALL IS RECOMMENDED, OTHER FLAGS MAY BE BROKEN
