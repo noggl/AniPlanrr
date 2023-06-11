@@ -20,11 +20,16 @@ def runSonarr(sonarr, aniList):
         pr("Sonarr List is empty")
         #stop execution
         return False
+    # Remove obvious matches
     newShowList = diffDicts(aniList, sonarrList)
+    # Remove less obvious matches via IDs/Mapping
+    
+    newShowList = indexSonarrList(sonarr, newShowList, mapping, sonarrList)
     if LOGGING:
         pr("Found " + str(len(newShowList)) + " new shows to add to Sonarr")
+    
     # send each item in newShows to get_id_from_sonarr
-    sendToSonarr(sonarr, newShowList, mapping, sonarrList)
+    sendToSonarr(sonarr, newShowList, sonarrList)
 
 def runRadarr(radarr, aniMovieList):
     if LOGGING:
@@ -34,9 +39,10 @@ def runRadarr(radarr, aniMovieList):
         pr("Radarr List is empty")
         return False
     newMoviesList = diffDicts(aniMovieList, radarrList)
+    newMoviesList = indexRadarrList(radarr, newMoviesList, mapping, radarrList)
     if LOGGING:
         pr("Found " + str(len(newMoviesList)) + " new movies to add to Radarr")
-    sendToRadarr(radarr, newMoviesList, mapping, radarrList)
+    sendToRadarr(radarr, newMoviesList, radarrList)
 
 def main():
     if LOGGING:

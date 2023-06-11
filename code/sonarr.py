@@ -126,7 +126,7 @@ def search(sonarr, string):
     else:
         pr("Error: Sonarr response is not an array")
         dumpVar('failedSonarrResponse', response.json())
-        return
+        return False
 
 
 def updateSonarrSeason(sonarr, show):
@@ -175,33 +175,42 @@ def getSonarrTagId(sonarr, tag_name):
     return tag_id
 
 
-def sendToSonarr(sonarr, newShows, mapping, sonarrList):
+def indexSonarrList(sonarr, newShows, mapping, sonarrList):
     listToAdd = []
     for show in newShows:
         if LOGGING:
-            pr("Looking for ID for " + show['title'])
+            pr("Asking Sonarr for ID for " + show['title'])
         if show['anilistId'] in [i['anilistId'] for i in mapping]:
+            # Declare result in advance
+            result = False
             map = mapping[[i['anilistId']
                            for i in mapping].index(show['anilistId'])]
             pr(show['title'] + " is mapped to " +
                str(map['title']) + " season " + str(map['season']))
             # First check if show is in sonarrList (and therefore already in sonarr)
             if map['tmdb_or_tvdb_Id'] in [i['tvdbId'] for i in sonarrList]:
-                # mapped show was already in sonarr
-                result = sonarrList[[i['tvdbId']
-                                     for i in sonarrList].index(map['tmdb_or_tvdb_Id'])]
-                result['anilistId'] = map['anilistId']
-                result['season'] = map['season']
+                if RESPECTFUL_ADDING:
+                    if LOGGING:
+                        pr("Only looking respectfully at existing entry for " + show['title'])
+                else:
+                    # mapped show was already in sonarr
+                    result = sonarrList[[i['tvdbId']
+                                        for i in sonarrList].index(map['tmdb_or_tvdb_Id'])]
+                    result['anilistId'] = map['anilistId']
+                    result['season'] = map['season']
             else:
                 # Searching for mapped show by tvdbId
                 result = search(sonarr, "tvdb:" + str(map['tmdb_or_tvdb_Id']))
                 result['season'] = map['season']
                 result['anilistId'] = show['anilistId']
-            listToAdd.append(result)
+                if AUTO_FILL_MAPPING:
+                    addMapping(result)
+            if result:
+                listToAdd.append(result)
         else:
             print("Searching for " + show['title'] + ' by title and year')
             result = search(sonarr, show['title'] + ' ' + str(show['year']))
-            if result is not None and compareDicts(result, show):
+            if result is not False and compareDicts(result, show):
                 pr("ID received from sonarr for " + show['title'])
                 result['anilistId'] = show['anilistId']
                 listToAdd.append(result)
@@ -210,6 +219,9 @@ def sendToSonarr(sonarr, newShows, mapping, sonarrList):
                 if not (RETRY):
                     # add to ignore list
                     addToIgnoreList(show['title'], show['anilistId'])
+    return listToAdd
+
+def sendToSonarr(sonarr, listToAdd, sonarrList):
     for show in listToAdd:
         # hopefully "profileId" of 0 means it's not been added. "path" is None might also be a good indicator
         if 'path' in show:

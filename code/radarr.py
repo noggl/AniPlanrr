@@ -115,28 +115,35 @@ def getRadarrTagId(radarr, tag_name):
     return tag_id
 
 
-def sendToRadarr(radarr, newMovies, mapping, radarrList):
+def indexRadarrList(radarr, newMovies, mapping, radarrList):
     listToAdd = []
     for movie in newMovies:
         if LOGGING:
             pr("Looking for ID for " + movie['title'])
         # Mapping found for Movie
         if movie['anilistId'] in [i['anilistId'] for i in mapping]:
+            # Declare result in advance
+            result = False
             map = mapping[[i['anilistId']
                            for i in mapping].index(movie['anilistId'])]
             # First check if movie is in radarrList (and therefore already in radarr)
             if map['tmdb_or_tvdb_Id'] in [i['tmdbId'] for i in radarrList]:
-                # mapped movie was already in radarr
-                result = radarrList[[i['tmdbId']
-                                     for i in radarrList].index(map['tmdb_or_tvdb_Id'])]
-                result['anilistId'] = map['anilistId']
-                result['season'] = map['season']
+                if RESPECTFUL_ADDING:
+                    if LOGGING:
+                        pr("Only looking respectfully at existing entry for " + show['title'])
+                else:
+                    # mapped movie was already in radarr
+                    result = radarrList[[i['tmdbId']
+                                        for i in radarrList].index(map['tmdb_or_tvdb_Id'])]
+                    result['anilistId'] = map['anilistId']
+                    result['season'] = map['season']
             else:
                 # Searching for mapped movie by tmdbId
                 result = search(radarr, "tmdb:" + str(map['tmdb_or_tvdb_Id']))
                 result['season'] = map['season']
                 result['anilistId'] = movie['anilistId']
-            listToAdd.append(result)
+            if result:
+                listToAdd.append(result)
         # No mapping found for movie, searching by title
         else:
             print("Searching for " + movie['title'] + ' by title and year')
@@ -150,5 +157,8 @@ def sendToRadarr(radarr, newMovies, mapping, radarrList):
                 if not (RETRY):
                     # add to ignore list
                     addToIgnoreList(movie['title'], movie['anilistId'])  
+    return listToAdd
+
+def sendToRadarr(radarr, listToAdd, radarrList):
     for movie in listToAdd:
         addMovie(radarr, movie)
