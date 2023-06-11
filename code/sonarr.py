@@ -55,7 +55,7 @@ def addShow(show):
     show['languageProfileId'] = 1
     #set type to anime
     show['seriesType'] = 'anime'
-    show['path'] = '/tv/Anime/' + show['title']
+    show['path'] = '/tv/Anime/' + show['title'] # BUG - Hardcoded path, needs a variable or to pull from API
     # write show to file
     if LOGGING:
         dumpVar('addShowShow', show)
