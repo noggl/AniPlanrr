@@ -84,8 +84,8 @@ def setSeasons(show):
 def addShow(sonarr, show):
     pr("Adding " + show['title'] + " to Sonarr")
     show = setSeasons(show)
-    if getSonarrTagId("fromanilist") not in show['tags']:
-        show['tags'].append(getSonarrTagId("fromanilist"))
+    if getSonarrTagId(sonarr, "fromanilist") not in show['tags']:
+        show['tags'].append(getSonarrTagId(sonarr, "fromanilist"))
     # TODO, Don't use first profile, qualityprofile, or language. Allow user to set them somehow
     show['profileId'] = 1
     show['qualityProfileId'] = 1
