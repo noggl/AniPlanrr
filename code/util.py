@@ -3,6 +3,8 @@ import os
 from dotenv import load_dotenv
 import re
 from copy import copy
+import json
+import sqlite3
 
 # If in docker container
 if os.path.exists('config/.env'):
@@ -19,13 +21,15 @@ SONARRANIMEPATH = os.getenv('SONARRANIMEPATH')
 ANILIST_USERNAME = os.getenv('ANILIST_USERNAME')
 MONITOR = os.getenv('MONITOR')
 RETRY = os.getenv('RETRY')
+RESPECTFUL_ADDING = os.getenv('RESPECTFUL_ADDING')
 AUTO_FILL_MAPPING = os.getenv('AUTO_FILL_MAPPING')
 LOGGING = os.getenv('LOGGING')
 RADARRURL = os.getenv('RADARRURL')
 RADARRAPIKEY = os.getenv('RADARRAPIKEY')
 RADARRANIMEPATH = os.getenv('RADARRANIMEPATH')
 
-logPath = configPath+'log/'
+logPath = configPath + 'log/'
+mappingFile = configPath + 'mapping.csv'
 
 
 def pr(string):
@@ -67,12 +71,12 @@ def loadIgnoreList():
 
 def loadMappingList():
     # if mapping.csv doesn't exist, create it
-    if not os.path.exists(configPath + 'mapping.csv'):
+    if not os.path.exists(mappingFile):
         pr("mapping.csv doesn't exist, creating it")
-        with open(configPath + 'mapping.csv', 'w') as f:
+        with open(mappingFile, 'w') as f:
             f.write('')
     mapping = []
-    with open(configPath + 'mapping.csv', 'r') as f:
+    with open(mappingFile, 'r') as f:
         for line in f:
             # check that file can be split into 4 parts
             if len(line.strip().split(';')) != 4:
@@ -86,6 +90,84 @@ def loadMappingList():
                     mapping.append({'title': arr[0], 'anilistId': int(
                         arr[1]), 'tmdb_or_tvdb_Id': int(arr[2]), 'season': int(arr[3])})
     return mapping
+
+def getID(text):
+    regex = r'[0-9]*$'
+    match = re.search(regex, text)
+    match = int(match.group())
+    return match
+
+def loadAOD():
+    # if anime-offline-database-minified.json doesn't exist, create it
+    # Source https://github.com/manami-project/anime-offline-database
+    # BAD BUG - Should setup auto-download and update of this file at some point
+    if not os.path.exists(configPath + 'anime-offline-database-minified.json'):
+        pr("anime-offline-database-minified.json doesn't exist")
+        raise Exception("anime-offline-database-minified.json doesn't exist")
+    # Check if AOD-mini.json was created already
+    if not os.path.exists(configPath + 'anime.db'):
+        pr("anime.db doesn't exist, creating it from AOD-mini")
+        AOD = {}
+        with open(configPath + 'anime-offline-database-minified.json', 'r') as f:
+            AOD = json.load(f)
+            lastUpdate = AOD["lastUpdate"]
+            AOD = AOD["data"]
+            db = sqlite3.connect(configPath + 'anime.db')
+            # Create a cursor
+            c = db.cursor()
+            # Create a table
+            c.execute('CREATE TABLE data (id INTEGER PRIMARY KEY, title TEXT, type TEXT, idMal INTEGER, anidb INTEGER)')
+
+            # Insert the data into the table
+            for row in AOD:
+                entry = {
+                    'id': 0,
+                    'title': "Unk",
+                    'type': "Unk",
+                    'idMal': 0,
+                    'anidb': 0
+                }
+                for source in row['sources']:
+                    if re.match(r'.*anilist\.co', source):
+                        entry['id'] = getID(source)
+                    if re.match(r'.*myanimelist\.net', source):
+                        entry['idMal'] = getID(source)
+                    if re.match(r'.*anidb\.net', source):
+                        entry['anidb'] = getID(source)
+                if entry['id'] == 0:
+                    # if LOGGING:
+                    #     pr("Skipping an entry...")
+                    continue
+                # This list will 1:1 map from the AOD json to the anime.db
+                directTransfers = ['title', 'type']
+                for transfer in directTransfers:
+                    if transfer in row:
+                        entry[transfer] = row[transfer]
+                try:
+                    c.execute('INSERT INTO data (id, title, type, idMal, anidb) VALUES (?, ?, ?, ?, ?)', (entry['id'], entry['title'], entry['type'], entry['idMal'], entry['anidb']))
+                except:
+                    pr("Exception from SQLite")
+            db.commit()
+            pr("Made anime.db!")
+    else:
+        db = sqlite3.connect(configPath + 'anime.db')
+        c = db.cursor()
+    return c
+
+def searchDB(c, id):
+    id = str(id)
+    c.execute('SELECT * FROM data WHERE id = ' + id)
+    results = c.fetchall()
+    r = results[0]
+    entry = {
+                    'id': r[0],
+                    'title': r[1],
+                    'type': r[2],
+                    'idMal': r[3],
+                    'anidb': r[4]
+                }
+
+    return entry
 
 
 def addToIgnoreList(title, id):
@@ -104,7 +186,7 @@ def addToIgnoreList(title, id):
 
 
 def cleanText(string):
-    return re.sub(r'[^\w\s]', '', str(string)).lower()
+    return re.sub(r'[^\w\s]', '', str(string)).lower().rstrip("'`~")
 
 def stripExtraKeys(item):
     entry = copy(item)
@@ -134,6 +216,8 @@ def dumpVar(name, var):
 
 
 def addMapping(item):
+    if LOGGING:
+        pr("Trying to map this item...")
     mapping = loadMappingList()
     # if mapping['anilistId] isn't already in mapping list
     if item['anilistId'] not in [i['anilistId'] for i in mapping]:
@@ -146,19 +230,77 @@ def addMapping(item):
             newId = item['tvdbId']
         if 'tmdb_or_tvdb_Id' not in item and 'tmdbId' not in item and 'tvdbId' not in item:
             pr("Error: " + item['title'] + " has no tmdbId or tvdbId")
-            return
+            return False
     if 'season' not in item:
         item['season'] = 1
         # add mapping to mapping.csv
         pr("Adding mapping: " + item['title'] + " " + str(item['anilistId']) +
             " " + str(newId) + " " + str(item['season']))
         # if not the first line in mapping.csv, add a new line
-        if os.stat(configPath + 'mapping.csv').st_size != 0:
-            with open(configPath + 'mapping.csv', 'a') as f:
+        if os.stat(mappingFile).st_size != 0:
+            with open(mappingFile, 'a') as f:
                 f.write("\r")
-        with open(configPath + 'mapping.csv', 'a') as f:
+        with open(mappingFile, 'a') as f:
             f.write(item['title'] + ";" + str(item['anilistId']) +
                     ";" + str(newId) + ";" + str(item['season']))
+            return True
+
+
+def animeMatch(result, show):
+    matching = 0
+    # Check romanji and english title VS all titles in results
+    for title in show['titles'].values():
+        if title is None:
+            continue
+        if cleanText(title) == cleanText(result['title']):
+            if LOGGING:
+                pr("Matched in title: " + title + " & " + result['title'])
+            matching += 1
+            break
+        else:
+            if LOGGING:
+                pr("DID NOT match in title: " + title + " & " + result['title'])
+    if show['year'] == result['year']:
+        if LOGGING:
+            pr("Matched in year: " + str(show['year']))
+        matching += 1
+    else:
+        if LOGGING:
+            pr("DID NOT matched in year: " + str(show['year']) + " & " + str(result['year']))
+    # List of all keys we've investigated already
+    investigated = ['year', 'title']
+    for key in show:
+        if key not in investigated:
+            if key in result:
+                if isinstance(result[key], str) and isinstance(show[key], str):
+                    first = cleanText(result[key])
+                    second = cleanText(show[key])
+                else:
+                    first = result[key]
+                    second = show[key]
+
+                if first == second:
+                    matching += 1
+    if matching >= 2:
+        if LOGGING:
+            pr("Matched on two or more! It is: " + str(result['tvdbId']))
+        return result['tvdbId']
+    else:
+        if LOGGING:
+            pr("Failed to match...")
+        return False
+
+    for key in small:
+        if key in big:
+            # pr("Key that mached: " + str(key))
+            # if values are strings
+            if isinstance(small[key], str) and isinstance(big[key], str):
+                if cleanText(small[key]) != cleanText(big[key]):
+                    return False
+            else:
+                if small[key] != big[key]:
+                    return False
+    return True
 
 
 def compareDicts(dict1, dict2):

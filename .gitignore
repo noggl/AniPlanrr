@@ -1,2 +1,10 @@
-.env
 docker-compose.yaml
+
+# Cache directories
+config/log/*
+code/__pycache__/*
+
+# Known configs
+.env
+ignore.csv
+mapping.csv

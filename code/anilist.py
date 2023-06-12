@@ -3,12 +3,12 @@ from util import pr, dumpVar, LOGGING
 
 
 def convertToDict(entry):
-    if entry['media']['title']['english'] is not None:
-        return {'title':
-                entry['media']['title']['english'], 'year': entry['media']['startDate']['year'], 'anilistId': entry['media']['id']}
-    else:
-        return {'title':
-                entry['media']['title']['romaji'], 'year': entry['media']['startDate']['year'], 'anilistId': entry['media']['id']}
+    return {
+        'titles': entry['media']['title'],
+        'title': list(entry['media']['title'].values())[0],
+        'year': entry['media']['startDate']['year'],
+        'anilistId': entry['media']['id']
+    }
 
 
 def getAniList(username):
