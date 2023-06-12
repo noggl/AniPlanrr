@@ -213,9 +213,7 @@ def indexSonarrList(sonarr, newShows, mapping, sonarrList):
             if result:
                 listToAdd.append(result)
         else:
-            if LOGGING:
-                pr("Asking Sonarr for ID for " + show['title'])
-            print("Searching for " + show['title'] + ' by title and year')
+            pr("Searching Sonarr for " + show['title'] + ' by title and year')
             result = search(sonarr, show['titles'], str(show['year']))
             if result:
                 if LOGGING:
