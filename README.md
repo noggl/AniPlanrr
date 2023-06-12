@@ -64,9 +64,8 @@ RETRY=True                                  # If True, will write failed shows t
 INTERVAL=3600                               # Interval in seconds to run the script on (this will run it every hour) - Necessary in containers
 LOGGING=False                               # If True, will add extra output for debug purposes! Also generates a logging folder (config/log)
 RESPECTFUL_ADDING                           # If True, will not even touch a series if it's already listed in the application
-AUTO_FILL_MAPPING                           # Allow the program to write mapping entries - See mapping down below
+AUTO_FILL_MAPPING                           # Allow the program to write mapping entries - See mapping down under config files
 ```
-[Mapping](#mapping)
 
 ## Config Files
 There are 2 configuration files stored as .csv files, these are ignore.csv and mapping.csv. 
