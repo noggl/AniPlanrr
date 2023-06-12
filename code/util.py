@@ -17,6 +17,7 @@ else:
 load_dotenv('config/.env')
 SONARRURL = os.getenv('SONARRURL')
 SONARRAPIKEY = os.getenv('SONARRAPIKEY')
+SONARRANIMEPATH = os.getenv('SONARRANIMEPATH')
 ANILIST_USERNAME = os.getenv('ANILIST_USERNAME')
 MONITOR = os.getenv('MONITOR')
 RETRY = os.getenv('RETRY')
@@ -25,6 +26,7 @@ AUTO_FILL_MAPPING = os.getenv('AUTO_FILL_MAPPING')
 LOGGING = os.getenv('LOGGING')
 RADARRURL = os.getenv('RADARRURL')
 RADARRAPIKEY = os.getenv('RADARRAPIKEY')
+RADARRANIMEPATH = os.getenv('RADARRANIMEPATH')
 
 logPath = configPath + 'log/'
 mappingFile = configPath + 'mapping.csv'

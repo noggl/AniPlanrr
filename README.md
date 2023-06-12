@@ -20,8 +20,14 @@ services:
     environment:
       - SONARRURL=http://sonarr_url_and_port/       # Sonarr URL (ex: http://localhost:8989/)
       - SONARRAPIKEY=your_api_key                   # Sonarr API Key
+<<<<<<< HEAD
       - RADARRURL=http://radarr_url_and_port/       # Radarr URL (ex: http://localhost:7878/)
+=======
+      - SONARRANIMEPATH=/path/to/anime              # Sonarr Anime Path (ex: /tv/anime/)
+      - RADARRURL=http://radarr_url_and_port/api/   # Radarr URL (ex: http://localhost:7878/api/)
+>>>>>>> origin
       - RADARRAPIKEY=your_api_key                   # Radarr API Key
+      - RADARRANIMEPATH=/path/to/anime              # Radarr Anime Path (ex: /movies/anime/)
       - ANILIST_USERNAME=yourname                   # AniList Username
       - MONITOR=all                                 # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) ALL IS RECOMMENDED, OTHER FLAGS MAY BE BROKEN
       - RETRY=True                                  # If True, will write failed shows to ignore file to ignore next time
@@ -34,6 +40,17 @@ Once set to your liking, rename the file to `docker-compose.yaml` and run `docke
 ## Running Locally
 If running locally, you will instead need to create a .env file. An example is provided in the repo as [code/.env.example](code/.env.example).
 See [Env](#env).
+```
+SONARRURL="http://192.168.1.1:8989/"        #Sonarr URL
+SONARRAPIKEY="yourapikey"                   #Sonarr API Key
+SONARRANIMEPATH='/tv/Anime/'                #Path to Anime in Sonarr
+RADARRURL="http://192.168.1.1:7878/    "    #Radarr URL
+RADARRAPIKEY="yourapikey"                   #Radarr API Key
+RADARRANIMEPATH='/movies/Anime/'            #Path to Anime in Radarr
+ANILIST_USERNAME="yourusername"             #AniList Username
+MONITOR='all'                               #Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) ALL IS RECOMMENDED, OTHER FLAGS MAY BE BROKEN
+RETRY=True                                  #If True, will write failed shows to ignore file to ignore next time
+```
 The config files will be saved to the `config` directory in the repo. You can edit the example files in that folder and remove the .example suffix to use them.
 
 To run, you'll need to install the requirements using `pip install -r code/requirements.txt` and then run the script using `python3 code/aniplanrr.py`
