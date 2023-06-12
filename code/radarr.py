@@ -59,8 +59,8 @@ def getRadarrList(radarr):
 
 def addMovie(radarr, movie):
     pr("Adding " + movie['title'] + " to Radarr")
-    if getRadarrTagId("fromanilist") not in movie['tags']:
-        movie['tags'].append(getRadarrTagId("fromanilist"))
+    if getRadarrTagId(radarr, "fromanilist") not in movie['tags']:
+        movie['tags'].append(getRadarrTagId(radarr, "fromanilist"))
     # TODO, Don't use quality profile. Allow user to set them somehow
     movie['qualityProfileId'] = 1
     movie['path'] = RADARRANIMEPATH + movie['title']
