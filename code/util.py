@@ -184,7 +184,7 @@ def addToIgnoreList(title, id):
 
 
 def cleanText(string):
-    return re.sub(r'[^\w\s]', '', str(string)).lower()
+    return re.sub(r'[^\w\s]', '', str(string)).lower().rstrip("'`~")
 
 def stripExtraKeys(item):
     entry = copy(item)
@@ -242,6 +242,64 @@ def addMapping(item):
             f.write(item['title'] + ";" + str(item['anilistId']) +
                     ";" + str(newId) + ";" + str(item['season']))
             return True
+
+
+def animeMatch(result, show):
+    print(str(result))
+    matching = 0
+    # Check romanji and english title VS all titles in results
+    for title in show['titles'].values():
+        if title is None:
+            continue
+        if cleanText(title) == cleanText(result['title']):
+            if LOGGING:
+                pr("Matched in title: " + title + " & " + result['title'])
+            matching += 1
+            break
+        else:
+            if LOGGING:
+                pr("DID NOT match in title: " + title + " & " + result['title'])
+    if show['year'] == result['year']:
+        if LOGGING:
+            pr("Matched in year: " + str(show['year']))
+        matching += 1
+    else:
+        if LOGGING:
+            pr("DID NOT matched in year: " + str(show['year']) + " & " + str(result['year']))
+    # List of all keys we've investigated already
+    investigated = ['year', 'title']
+    for key in show:
+        if key not in investigated:
+            if key in result:
+                if isinstance(result[key], str) and isinstance(show[key], str):
+                    first = cleanText(result[key])
+                    second = cleanText(show[key])
+                else:
+                    first = result[key]
+                    second = show[key]
+
+                if first == second:
+                    matching += 1
+    if matching >= 2:
+        if LOGGING:
+            pr("Matched on two or more! It is: " + str(result['tvdbId']))
+        return result['tvdbId']
+    else:
+        if LOGGING:
+            pr("Failed to match...")
+        return False
+
+    for key in small:
+        if key in big:
+            # pr("Key that mached: " + str(key))
+            # if values are strings
+            if isinstance(small[key], str) and isinstance(big[key], str):
+                if cleanText(small[key]) != cleanText(big[key]):
+                    return False
+            else:
+                if small[key] != big[key]:
+                    return False
+    return True
 
 
 def compareDicts(dict1, dict2):

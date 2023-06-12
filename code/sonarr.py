@@ -220,8 +220,9 @@ def indexSonarrList(sonarr, newShows, mapping, sonarrList):
                 if LOGGING:
                     pr("Got some results!")
                     dumpVar('sonarrSearch', result)
-                if compareDicts(result, show): # BUG - Even with great results, this is not always matching correctly
-                    pr("ID received from sonarr for " + show['title'])
+                tvdbID = animeMatch(result, show)
+                if tvdbID:
+                    pr("ID received from sonarr for " + show['title'] + "with ID: " + str(tvdbID))
                     result['anilistId'] = show['anilistId']
                     listToAdd.append(result)
                     # If there's no existing mapping, and we find one, check if we should map it now.
