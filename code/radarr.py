@@ -26,8 +26,9 @@ def addMovie(movie):
     pr("Adding " + movie['title'] + " to Radarr")
     if getRadarrTagId("fromanilist") not in movie['tags']:
         movie['tags'].append(getRadarrTagId("fromanilist"))
+    # TODO, Don't use quality profile. Allow user to set them somehow
     movie['qualityProfileId'] = 1
-    movie['path'] = '/movies/Anime/' + movie['title']
+    movie['path'] = RADARRANIMEPATH + movie['title']
     movie['monitored'] = True
     movie['addOptions'] = {'monitor': 'movieOnly', "searchForMovie": True}
     if LOGGING:

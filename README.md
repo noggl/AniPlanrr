@@ -19,8 +19,10 @@ services:
     environment:
       - SONARRURL=http://sonarr_url_and_port/api/   # Sonarr URL (ex: http://localhost:8989/api/)
       - SONARRAPIKEY=your_api_key                   # Sonarr API Key
+      - SONARRANIMEPATH=/path/to/anime              # Sonarr Anime Path (ex: /tv/anime/)
       - RADARRURL=http://radarr_url_and_port/api/   # Radarr URL (ex: http://localhost:7878/api/)
       - RADARRAPIKEY=your_api_key                   # Radarr API Key
+      - RADARRANIMEPATH=/path/to/anime              # Radarr Anime Path (ex: /movies/anime/)
       - ANILIST_USERNAME=yourname                   # AniList Username
       - MONITOR=all                                 # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) ALL IS RECOMMENDED, OTHER FLAGS MAY BE BROKEN
       - RETRY=True                                  # If True, will write failed shows to ignore file to ignore next time
@@ -33,10 +35,12 @@ Once set to your liking, rename the file to `docker-compose.yaml` and run `docke
 ## Running Locally
 If running locally, you will instead need to create a .env file. An example is provided in the repo as code/.env.example.
 ```
-SONARRURL="http://192.168.1.1:8989/api/"    #Radarr URL
-SONARRAPIKEY="yourapikey"                   #Radarr API Key
-RADARRURL="http://192.168.1.1:7878/api/"    #Sonarr URL
-RADARRAPIKEY="yourapikey"                   #Sonarr API Key
+SONARRURL="http://192.168.1.1:8989/api/"    #Sonarr URL
+SONARRAPIKEY="yourapikey"                   #Sonarr API Key
+SONARRANIMEPATH='/tv/Anime/'                #Path to Anime in Sonarr
+RADARRURL="http://192.168.1.1:7878/api/"    #Radarr URL
+RADARRAPIKEY="yourapikey"                   #Radarr API Key
+RADARRANIMEPATH='/movies/Anime/'            #Path to Anime in Radarr
 ANILIST_USERNAME="yourusername"             #AniList Username
 MONITOR='all'                               #Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) ALL IS RECOMMENDED, OTHER FLAGS MAY BE BROKEN
 RETRY=True                                  #If True, will write failed shows to ignore file to ignore next time

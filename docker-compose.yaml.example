@@ -7,8 +7,10 @@ services:
     environment:
       - SONARRURL=http://sonarr_url_and_port/api/   # Sonarr URL (ex: http://localhost:8989/api/)
       - SONARRAPIKEY=your_api_key                   # Sonarr API Key
+      - SONARRANIMEPATH=/path/to/anime              # Sonarr Anime Path (ex: /tv/anime/)
       - RADARRURL=http://radarr_url_and_port/api/   # Radarr URL (ex: http://localhost:7878/api/)
       - RADARRAPIKEY=your_api_key                   # Radarr API Key
+      - RADARRANIMEPATH=/path/to/anime              # Radarr Anime Path (ex: /movies/anime/)
       - ANILIST_USERNAME=yourname                   # AniList Username
       - MONITOR=all                                 # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) ALL IS RECOMMENDED, OTHER FLAGS MAY BE BROKEN
       - RETRY=True                                  # If True, will write failed shows to ignore file to ignore next time
