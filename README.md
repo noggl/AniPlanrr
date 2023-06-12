@@ -20,12 +20,8 @@ services:
     environment:
       - SONARRURL=http://sonarr_url_and_port/       # Sonarr URL (ex: http://localhost:8989/)
       - SONARRAPIKEY=your_api_key                   # Sonarr API Key
-<<<<<<< HEAD
-      - RADARRURL=http://radarr_url_and_port/       # Radarr URL (ex: http://localhost:7878/)
-=======
       - SONARRANIMEPATH=/path/to/anime              # Sonarr Anime Path (ex: /tv/anime/)
-      - RADARRURL=http://radarr_url_and_port/api/   # Radarr URL (ex: http://localhost:7878/api/)
->>>>>>> origin
+      - RADARRURL=http://radarr_url_and_port/       # Radarr URL (ex: http://localhost:7878/)
       - RADARRAPIKEY=your_api_key                   # Radarr API Key
       - RADARRANIMEPATH=/path/to/anime              # Radarr Anime Path (ex: /movies/anime/)
       - ANILIST_USERNAME=yourname                   # AniList Username
