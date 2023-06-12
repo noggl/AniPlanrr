@@ -148,7 +148,7 @@ def updateSonarrSeason(sonarr, show):
     show['addOptions'] = {'monitor': MONITOR,
                           "searchForMissingEpisodes": 'true'}
     response = requests.put(
-        sonarr['URL'] + '/series/' + str(show['id']) + '?' + sonarr['APIKEY'], json=stripExtraKeys(show))
+        sonarr['APIURL'] + '/series/' + str(show['id']) + '?' + sonarr['APIKEY'], json=stripExtraKeys(show))
     # If resposne is 201, print success
     if response.status_code == 202:
         pr(show['title'] + " season " +
@@ -165,7 +165,7 @@ def getSonarrTagId(sonarr, tag_name):
     params = {
         'label': tag_name
     }
-    response = requests.get(sonarr['URL'] + '/tag?' + sonarr['APIKEY'])
+    response = requests.get(sonarr['APIURL'] + '/tag?' + sonarr['APIKEY'])
     # get id of tag labeled "fronAniList"
     tag_id = None
     for i in response.json():
@@ -174,7 +174,7 @@ def getSonarrTagId(sonarr, tag_name):
     # if tag_id was not found, create it
     if tag_id is None:
         response = requests.post(
-            sonarr['URL'] + '/tag?' + sonarr['APIKEY'], data=str(params).encode('utf-8'))
+            sonarr['APIURL'] + '/tag?' + sonarr['APIKEY'], data=str(params).encode('utf-8'))
         if response.status_code == 201:
             tag_id = response.json()['id']
     return tag_id
