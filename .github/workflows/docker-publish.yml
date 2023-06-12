@@ -5,8 +5,6 @@ name: Docker
 # separate terms of service, privacy policy, and support
 # documentation.
 on:
-  schedule:
-    - cron: '42 11 * * *'
   push:
     branches: [ "main" ]
     # Publish semver tags as releases.
