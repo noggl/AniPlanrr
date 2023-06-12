@@ -247,7 +247,6 @@ def addMapping(item):
 
 
 def animeMatch(result, show):
-    print(str(result))
     matching = 0
     # Check romanji and english title VS all titles in results
     for title in show['titles'].values():
