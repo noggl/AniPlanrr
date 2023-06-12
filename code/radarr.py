@@ -14,7 +14,7 @@ def setupRadarr(RADARRURL, RADARRAPIKEY):
     # Test access
     response = requests.get(radarr['URL'] + "/ping")
     if response.status_code != 200:
-        pr("Error: Radarr response is" + str(response.status_code) + ", not 200")
+        pr("Error: Can't ping Radarr, response is" + str(response.status_code) + ", not 200. Is this the right URL? Is it up?")
         if LOGGING:
             # write response to file
             dumpVar('failedRadarrResponse', response.json())
@@ -24,7 +24,7 @@ def setupRadarr(RADARRURL, RADARRAPIKEY):
         pr("Error: Radarr says you are Unauthorized. Check API key? Error code: " + str(response.status_code))
         return False
     elif response.status_code != 200:
-        pr("Error: Radarr response is" + str(response.status_code) + ", not 200")
+        pr("Error: Radarr response is" + str(response.status_code) + ", not 200. This should never hit, if ping just succeeded. Is there filtering going on?")
         if LOGGING:
             # write response to file
             dumpVar('failedradarrResponse', response.json())

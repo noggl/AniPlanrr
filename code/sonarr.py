@@ -15,7 +15,7 @@ def setupSonarr(SONARRURL, SONARRAPIKEY):
     # Test access
     response = requests.get(sonarr['URL'] + "/ping")
     if response.status_code != 200:
-        pr("Error: Sonarr response is" + str(response.status_code) + ", not 200")
+        pr("Error: Can't ping Sonarr, response is" + str(response.status_code) + ", not 200. Is this the right URL? Is it up?")
         if LOGGING:
             # write response to file
             dumpVar('failedSonarrResponse', response.json())
@@ -25,7 +25,7 @@ def setupSonarr(SONARRURL, SONARRAPIKEY):
         pr("Error: Sonarr says you are Unauthorized. Check API key? Error code: " + str(response.status_code))
         return False
     elif response.status_code != 200:
-        pr("Error: Sonarr response is" + str(response.status_code) + ", not 200")
+        pr("Error: Sonarr response is" + str(response.status_code) + ", not 200. This should never hit, if ping just succeeded. Is there filtering going on?")
         if LOGGING:
             # write response to file
             dumpVar('failedSonarrResponse', response.json())
