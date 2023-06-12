@@ -49,7 +49,7 @@ def main():
         pr("Getting AniList for " + ANILIST_USERNAME)
     [aniList, aniMovieList] = getAniList(str(ANILIST_USERNAME))
     # filter anilist if anilist[2] is in ignorelist
-    if not (RETRY):
+    if not (RETRY) or RETRY == "manual":
         aniList = [x for x in aniList if x['anilistId'] not in ignoreList]
         aniMovieList = [x for x in aniMovieList if x['anilistId'] not in ignoreList]
     # Load cursor for Anime Offline Database
