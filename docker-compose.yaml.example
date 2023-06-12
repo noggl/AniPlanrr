@@ -13,7 +13,7 @@ services:
       - RADARRANIMEPATH=/path/to/anime              # Radarr Anime Path (ex: /movies/anime/)
       - ANILIST_USERNAME=yourname                   # AniList Username
       - MONITOR=all                                 # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) ALL IS RECOMMENDED, OTHER FLAGS MAY BE BROKEN
-      - RETRY=True                                  # If True, will write failed shows to ignore file to ignore next time
+      - RETRY=True                                  # If False, will write failed shows to ignore file to ignore next time. If True, will not ignore anything. If set to 'manual', will ignore entries in ignore, but not add more.
       - INTERVAL=3600                               # Interval in seconds to run the script on (this will run it every hour)
     volumes:
       - '/etc/localtime:/etc/localtime:ro'
