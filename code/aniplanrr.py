@@ -11,6 +11,9 @@ else:
 
 ignoreList = loadIgnoreList()
 mapping = loadMappingList()
+if not RETRY:
+    pr("Loaded " + str(len(ignoreList)) + " items to ignore")
+pr("Loaded " + str(len(mapping)) + " items to map")
 
 def runSonarr(sonarr, aniList):
     if LOGGING:

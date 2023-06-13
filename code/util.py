@@ -5,6 +5,7 @@ import re
 from copy import copy
 import json
 import sqlite3
+import csv
 
 # If in docker container
 if os.path.exists('config/.env'):
@@ -77,13 +78,14 @@ def loadMappingList():
             f.write('')
     mapping = []
     with open(mappingFile, 'r') as f:
-        for line in f:
+        reader =csv.reader(f, delimiter=';')
+        for row in reader:
+            arr = row
             # check that file can be split into 4 parts
-            if len(line.strip().split(';')) != 4:
+            if len(arr) != 4:
                 pr("Error: mapping.csv is not formatted correctly")
             else:
-                arr = line.strip().split(';')
-                # check that 2nd, third and fourth part are ints
+                # check that id is an int
                 if not arr[1].isdigit() or not arr[2].isdigit() or not arr[3].isdigit():
                     pr("Error: mapping.csv is not formatted correctly")
                 else:
