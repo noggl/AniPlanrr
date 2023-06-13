@@ -251,6 +251,9 @@ def addMapping(item):
 def animeMatch(result, show):
     matching = 0
     # Check romanji and english title VS all titles in results
+    #if result['title'] contains year in paranthesis, remove the year
+    if re.search(r'\(\d{4}\)', result['title']):
+        result['title'] = re.sub(r'\(\d{4}\)', '', result['title']).rstrip()
     for title in show['titles'].values():
         if title is None:
             continue
