@@ -155,7 +155,7 @@ def indexRadarrList(radarr, newMovies, mapping, radarrList):
                 listToAdd.append(result)
             else:
                 pr("ID not received from radarr for " + movie['title'])
-                if not (RETRY):
+                if RETRY == "False":
                     # add to ignore list
                     addToIgnoreList(movie['title'], movie['anilistId'])  
     return listToAdd

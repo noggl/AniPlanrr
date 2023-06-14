@@ -56,12 +56,13 @@ def loadIgnoreList():
             f.write('')
     ignoreList = []
     with open(configPath + 'ignore.csv', 'r') as f:
-        for line in f:
-            # check that file can be split into 2 parts
-            if len(line.strip().split(';')) != 2:
+        reader = csv.reader(f, delimiter=';')
+        for row in reader:
+            arr = row
+            # check that file can be split into 4 parts
+            if len(arr) != 2:
                 pr("Error: ignore.csv is not formatted correctly")
             else:
-                arr = line.strip().split(';')
                 # check that id is an int
                 if not arr[1].isdigit():
                     pr("Error: ignore.csv is not formatted correctly")
@@ -100,10 +101,8 @@ def addToIgnoreList(title, id):
         # add id to ignorelist
         pr("Adding " + title + " to ignore list")
         with open(configPath + 'ignore.csv', 'a') as f:
-            # if file is not empty, add newline
-            if os.stat(configPath + 'ignore.csv').st_size != 0:
-                f.write('\n')
-            f.write(title + ';' + str(id))
+            writer = csv.writer(f, delimiter=';')
+            writer.writerow([title, id])
     else:
         pr(title + " is already in ignore list")
 
@@ -159,13 +158,9 @@ def addMapping(item):
         # add mapping to mapping.csv
         pr("Adding mapping: " + item['title'] + " " + str(item['anilistId']) +
             " " + str(newId) + " " + str(item['season']))
-        # if not the first line in mapping.csv, add a new line
-        if os.stat(mappingFile).st_size != 0:
-            with open(mappingFile, 'a') as f:
-                f.write("\r")
         with open(mappingFile, 'a') as f:
-            f.write(item['title'] + ";" + str(item['anilistId']) +
-                    ";" + str(newId) + ";" + str(item['season']))
+            writer = csv.writer(f, delimiter=';')
+            writer.writerow([item['title'], item['anilistId'],newId, item['season']])
             return True
 
 

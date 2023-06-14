@@ -229,7 +229,7 @@ def indexSonarrList(sonarr, newShows, mapping, sonarrList):
                         addMapping(result)
             else:
                 pr("ID not received from sonarr for " + show['title'])
-                if not (RETRY):
+                if RETRY == "False":
                     # add to ignore list
                     addToIgnoreList(show['title'], show['anilistId'])
     return listToAdd
