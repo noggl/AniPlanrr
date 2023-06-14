@@ -61,8 +61,9 @@ def getSonarrList(sonarr):
     return seriesList
 
 def setSeasons(show):
-    # Not sure if this is how I want to do this. If I don't have the season==1,
-    # and there is an explicit season 1, it will not follow MONITOR nor track season 2
+    if MONITOR == 'pilot' or MONITOR == 'firstSeason':
+        pr("Setting show to monitor only the first season")
+        show['season'] = 1
     if 'season' not in show or show['season'] == 1:
         pr('season not set, setting all seasons to monitored')
         for i in range(len(show['seasons'])):
@@ -104,7 +105,8 @@ def addShow(sonarr, show):
     # If resposne is 201, print success
     if response.status_code == 201:
         pr(show['title'] + " was added to Sonarr")
-        dumpVar('addShowResponse', response.json())
+        if LOGGING:
+            dumpVar('addShowResponse', response.json())
     else:
         pr("ERROR: " + show['title'] + " could not be added to Sonarr")
         # write response to file
