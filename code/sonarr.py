@@ -64,7 +64,9 @@ def setSeasons(show):
     # Not sure if this is how I want to do this. If I don't have the season==1,
     # and there is an explicit season 1, it will not follow MONITOR nor track season 2
     if 'season' not in show or show['season'] == 1:
-        pr('season not set, setting to ' + str(MONITOR))
+        pr('season not set, setting all seasons to monitored')
+        for i in range(len(show['seasons'])):
+            show['seasons'][i]['monitored'] = True
         show['addOptions'] = {'monitor': MONITOR,
                               "searchForMissingEpisodes": True}
         return show
@@ -77,7 +79,8 @@ def setSeasons(show):
                 # if this is a new show, set all other seasons to false
                 if 'path' not in show:
                     show['seasons'][i]['monitored'] = False
-        show['addOptions'] = {"searchForMissingEpisodes": 'true'}
+        show['addOptions'] = {'monitor': MONITOR,
+                              "searchForMissingEpisodes": True}
         return show
 
 
@@ -136,10 +139,25 @@ def search(sonarr, strings, year=False):
             continue
     return False
 
+def getSonarrTagId(sonarr, tag_name):
+    params = {
+        'label': tag_name
+    }
+    response = requests.get(sonarr['APIURL'] + '/tag?' + sonarr['APIKEY'])
+    # get id of tag labeled "fronAniList"
+    tag_id = None
+    for i in response.json():
+        if i['label'] == tag_name.lower():
+            tag_id = i['id']
+    # if tag_id was not found, create it
+    if tag_id is None:
+        response = requests.post(
+            sonarr['APIURL'] + '/tag?' + sonarr['APIKEY'], data=str(params).encode('utf-8'))
+        if response.status_code == 201:
+            tag_id = response.json()['id']
+    return tag_id
 
 def updateSonarrSeason(sonarr, show):
-    pr("Adding " + show['title'] + " season " +
-       str(show['season']) + " to Sonarr")
     # change "monitored" in entry['seasons'] to true where seasonNumber = season
     show = setSeasons(show)
     if getSonarrTagId(sonarr, "fromanilist") not in show['tags']:
@@ -159,26 +177,6 @@ def updateSonarrSeason(sonarr, show):
         # write response to file
         if LOGGING:
             dumpVar('updateSeasonResponse', response.json())
-
-
-def getSonarrTagId(sonarr, tag_name):
-    params = {
-        'label': tag_name
-    }
-    response = requests.get(sonarr['APIURL'] + '/tag?' + sonarr['APIKEY'])
-    # get id of tag labeled "fronAniList"
-    tag_id = None
-    for i in response.json():
-        if i['label'] == tag_name.lower():
-            tag_id = i['id']
-    # if tag_id was not found, create it
-    if tag_id is None:
-        response = requests.post(
-            sonarr['APIURL'] + '/tag?' + sonarr['APIKEY'], data=str(params).encode('utf-8'))
-        if response.status_code == 201:
-            tag_id = response.json()['id']
-    return tag_id
-
 
 def indexSonarrList(sonarr, newShows, mapping, sonarrList):
     listToAdd = []
