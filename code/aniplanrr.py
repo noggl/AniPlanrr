@@ -4,7 +4,7 @@ from radarr import *
 from sonarr import *
 
 # if logging is true
-if LOGGING:
+if LOGGING == True:
     pr("Logging is enabled")
 else:
     pr("Logging is disabled")
@@ -16,7 +16,7 @@ if not RETRY:
 pr("Loaded " + str(len(mapping)) + " items to map")
 
 def runSonarr(sonarr, aniList):
-    if LOGGING:
+    if LOGGING == True:
         pr("Getting Sonarr List")
     sonarrList = getSonarrList(sonarr)
     if sonarrList is None:
@@ -28,14 +28,14 @@ def runSonarr(sonarr, aniList):
     # Remove less obvious matches via IDs/Mapping
     
     newShowList = indexSonarrList(sonarr, newShowList, mapping, sonarrList)
-    if LOGGING:
+    if LOGGING == True:
         pr("Found " + str(len(newShowList)) + " new shows to add to Sonarr")
     
     # send each item in newShows to get_id_from_sonarr
     sendToSonarr(sonarr, newShowList, sonarrList)
 
 def runRadarr(radarr, aniMovieList):
-    if LOGGING:
+    if LOGGING == True:
         pr("Getting Radarr List")
     radarrList = getRadarrList(radarr)
     if radarrList is None:
@@ -43,25 +43,18 @@ def runRadarr(radarr, aniMovieList):
         return False
     newMoviesList = diffDicts(aniMovieList, radarrList)
     newMoviesList = indexRadarrList(radarr, newMoviesList, mapping, radarrList)
-    if LOGGING:
+    if LOGGING == True:
         pr("Found " + str(len(newMoviesList)) + " new movies to add to Radarr")
     sendToRadarr(radarr, newMoviesList, radarrList)
 
 def main():
-    if LOGGING:
+    if LOGGING == True:
         pr("Getting AniList for " + ANILIST_USERNAME)
     [aniList, aniMovieList] = getAniList(str(ANILIST_USERNAME))
     # filter anilist if anilist[2] is in ignorelist
     if not (RETRY) or RETRY == "manual":
         aniList = [x for x in aniList if x['anilistId'] not in ignoreList]
         aniMovieList = [x for x in aniMovieList if x['anilistId'] not in ignoreList]
-    # Load cursor for Anime Offline Database
-    # aod = loadAOD() # loadAOD has a BUG - Requires file to already exist, will not download it
-    # aodList = []
-    # if LOGGING:
-    #     pr("Getting AOD Listings")
-    # for anime in aniList:
-    #     aodList.append(searchDB(aod, anime['anilistId']))
     if SONARRURL:
         sonarr = setupSonarr(SONARRURL, SONARRAPIKEY)
         if sonarr:

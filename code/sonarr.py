@@ -3,7 +3,7 @@ import requests
 from util import *
 
 def setupSonarr(SONARRURL, SONARRAPIKEY):
-    if LOGGING:
+    if LOGGING == True:
         pr("Running setupSonarr function!")
     # Define sonarr dict
     sonarr = {
@@ -16,7 +16,7 @@ def setupSonarr(SONARRURL, SONARRAPIKEY):
     response = requests.get(sonarr['URL'] + "/ping")
     if response.status_code != 200:
         pr("Error: Can't ping Sonarr, response is" + str(response.status_code) + ", not 200. Is this the right URL? Is it up?")
-        if LOGGING:
+        if LOGGING == True:
             # write response to file
             dumpVar('failedSonarrResponse', response.json())
         return False
@@ -26,13 +26,13 @@ def setupSonarr(SONARRURL, SONARRAPIKEY):
         return False
     elif response.status_code != 200:
         pr("Error: Sonarr response is" + str(response.status_code) + ", not 200. This should never hit, if ping just succeeded. Is there filtering going on?")
-        if LOGGING:
+        if LOGGING == True:
             # write response to file
             dumpVar('failedSonarrResponse', response.json())
         return False
     answer = response.json()
     if answer['appName'] == 'Sonarr' or answer['instaneName'] == 'Sonarr':
-        if LOGGING:
+        if LOGGING == True:
             pr("Confirmed Sonarr instance URL and Key, returning information!")
     else:
         pr("Information seems sketch, but if it works, it works. Returning key!")
@@ -45,12 +45,12 @@ def getSonarrList(sonarr):
     # create list from response title and id
     if response.status_code != 200:
         pr("Error: Sonarr response is" + str(response.status_code) + ", not 200")
-        if LOGGING:
+        if LOGGING == True:
             # write response to file
             dumpVar('failedSonarrResponse', response.json())
         return
     seriesList = []
-    if LOGGING:
+    if LOGGING == True:
         # write response to file
         dumpVar('getSonarrResponse', response.json())
     # for each object in response
@@ -98,19 +98,19 @@ def addShow(sonarr, show):
     show['seriesType'] = 'anime'
     show['path'] = SONARRANIMEPATH + show['title']
     # write show to file
-    if LOGGING:
+    if LOGGING == True:
         dumpVar('addShowShow', show)
     response = requests.post(
         sonarr['APIURL'] + '/series?' + sonarr['APIKEY'], json=stripExtraKeys(show))
     # If resposne is 201, print success
     if response.status_code == 201:
         pr(show['title'] + " was added to Sonarr")
-        if LOGGING:
+        if LOGGING == True:
             dumpVar('addShowResponse', response.json())
     else:
         pr("ERROR: " + show['title'] + " could not be added to Sonarr")
         # write response to file
-        if LOGGING:
+        if LOGGING == True:
             dumpVar('addShowResponse', response.json())
 
 
@@ -130,7 +130,7 @@ def search(sonarr, strings, year=False):
             response = requests.get(url)
         except:
             pr("Failed to search with url: " + url)
-        if LOGGING:
+        if LOGGING == True:
             dumpVar('searchResponse', response.json())
         #if response is array return first element
         if len(response.json()) > 0:
@@ -177,13 +177,13 @@ def updateSonarrSeason(sonarr, show):
         pr("ERROR: " + show['title'] + " season " +
            str(show['season']) + " could not be added to Sonarr")
         # write response to file
-        if LOGGING:
+        if LOGGING == True:
             dumpVar('updateSeasonResponse', response.json())
 
 def indexSonarrList(sonarr, newShows, mapping, sonarrList):
     listToAdd = []
     for show in newShows:
-        if LOGGING:
+        if LOGGING == True:
                 pr("Checking for existing mapping for " + show['title'])
         if show['anilistId'] in [i['anilistId'] for i in mapping]:
             # Declare result in advance
@@ -195,7 +195,7 @@ def indexSonarrList(sonarr, newShows, mapping, sonarrList):
             # First check if show is in sonarrList (and therefore already in sonarr)
             if map['tmdb_or_tvdb_Id'] in [i['tvdbId'] for i in sonarrList]:
                 if RESPECTFUL_ADDING:
-                    if LOGGING:
+                    if LOGGING == True:
                         pr("Only looking respectfully at existing entry for " + show['title'])
                 else:
                     # mapped show was already in sonarr
@@ -216,7 +216,7 @@ def indexSonarrList(sonarr, newShows, mapping, sonarrList):
             pr("Searching Sonarr for " + show['title'] + ' by title and year')
             result = search(sonarr, show['titles'], str(show['year']))
             if result:
-                if LOGGING:
+                if LOGGING == True:
                     pr("Got some results!")
                     dumpVar('sonarrSearch', result)
                 tvdbID = animeMatch(result, show)

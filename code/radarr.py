@@ -2,7 +2,7 @@ import requests
 from util import *
 
 def setupRadarr(RADARRURL, RADARRAPIKEY):
-    if LOGGING:
+    if LOGGING == True:
         pr("Running setupRadarr function!")
     # Define radarr dict
     radarr = {
@@ -15,7 +15,7 @@ def setupRadarr(RADARRURL, RADARRAPIKEY):
     response = requests.get(radarr['URL'] + "/ping")
     if response.status_code != 200:
         pr("Error: Can't ping Radarr, response is" + str(response.status_code) + ", not 200. Is this the right URL? Is it up?")
-        if LOGGING:
+        if LOGGING == True:
             # write response to file
             dumpVar('failedRadarrResponse', response.json())
         return False
@@ -25,13 +25,13 @@ def setupRadarr(RADARRURL, RADARRAPIKEY):
         return False
     elif response.status_code != 200:
         pr("Error: Radarr response is" + str(response.status_code) + ", not 200. This should never hit, if ping just succeeded. Is there filtering going on?")
-        if LOGGING:
+        if LOGGING == True:
             # write response to file
             dumpVar('failedradarrResponse', response.json())
         return False
     answer = response.json()
     if answer['appName'] == 'Radarr' or answer['instaneName'] == 'Radarr':
-        if LOGGING:
+        if LOGGING == True:
             pr("Confirmed Radarr instance URL and Key, returning information!")
     else:
         pr("Information seems sketch, but if it works, it works. Returning key!")
@@ -43,12 +43,12 @@ def getRadarrList(radarr):
     # create list from response title and id
     if response.status_code != 200:
         pr("Error: Radarr response is" + str(response.status_code) + ", not 200")
-        if LOGGING:
+        if LOGGING == True:
             # write response to file
             dumpVar('failedRadarrResponse', response.json())
         return
     movieList = []
-    if LOGGING:
+    if LOGGING == True:
         # write response to file
         dumpVar('getRadarrResponse', response.json())
     # for each object in response
@@ -66,7 +66,7 @@ def addMovie(radarr, movie):
     movie['path'] = RADARRANIMEPATH + movie['title']
     movie['monitored'] = True
     movie['addOptions'] = {'monitor': 'movieOnly', "searchForMovie": True}
-    if LOGGING:
+    if LOGGING == True:
         # write params to file
         dumpVar('addMovieParams', movie)
     response = requests.post(radarr['APIURL'] + '/movie?' + radarr['APIKEY'], json=stripExtraKeys(movie))
@@ -78,7 +78,7 @@ def addMovie(radarr, movie):
             addMapping(movie)
     else:
         pr("ERROR: " + movie['title'] + " could not be added to Radarr")
-        if LOGGING:
+        if LOGGING == True:
             dumpVar('addMovieResponse', response.json())
 
 
@@ -91,7 +91,7 @@ def search(radarr, string):
         return response.json()[0]
     else:
         pr("Error: Radarr response is not array")
-        if LOGGING:
+        if LOGGING == True:
             dumpVar('failedRadarrResponse', response.json())
         return
 
@@ -119,7 +119,7 @@ def getRadarrTagId(radarr, tag_name):
 def indexRadarrList(radarr, newMovies, mapping, radarrList):
     listToAdd = []
     for movie in newMovies:
-        if LOGGING:
+        if LOGGING == True:
             pr("Looking for ID for " + movie['title'])
         # Mapping found for Movie
         if movie['anilistId'] in [i['anilistId'] for i in mapping]:
@@ -130,7 +130,7 @@ def indexRadarrList(radarr, newMovies, mapping, radarrList):
             # First check if movie is in radarrList (and therefore already in radarr)
             if map['tmdb_or_tvdb_Id'] in [i['tmdbId'] for i in radarrList]:
                 if RESPECTFUL_ADDING:
-                    if LOGGING:
+                    if LOGGING == True:
                         pr("Only looking respectfully at existing entry for " + show['title'])
                 else:
                     # mapped movie was already in radarr
