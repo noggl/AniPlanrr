@@ -21,10 +21,16 @@ SONARRAPIKEY = os.getenv('SONARRAPIKEY')
 SONARRANIMEPATH = os.getenv('SONARRANIMEPATH')
 ANILIST_USERNAME = os.getenv('ANILIST_USERNAME')
 MONITOR = os.getenv('MONITOR')
-RETRY = os.getenv('RETRY')
+if os.getenv('RETRY') == 'True':
+    RETRY = True
+else:
+    RETRY = False
 RESPECTFUL_ADDING = os.getenv('RESPECTFUL_ADDING')
 AUTO_FILL_MAPPING = os.getenv('AUTO_FILL_MAPPING')
-LOGGING = os.getenv('LOGGING')
+if os.getenv('LOGGING') == 'True':
+    LOGGING = True
+else:
+    LOGGING = os.getenv('LOGGING')
 RADARRURL = os.getenv('RADARRURL')
 RADARRAPIKEY = os.getenv('RADARRAPIKEY')
 RADARRANIMEPATH = os.getenv('RADARRANIMEPATH')
