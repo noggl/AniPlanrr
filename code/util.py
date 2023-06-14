@@ -19,6 +19,11 @@ load_dotenv('config/.env')
 SONARRURL = os.getenv('SONARRURL')
 SONARRAPIKEY = os.getenv('SONARRAPIKEY')
 SONARRANIMEPATH = os.getenv('SONARRANIMEPATH')
+#If path contains single or double quotes, remove them
+if SONARRANIMEPATH.find("'") != -1:
+    SONARRANIMEPATH = SONARRANIMEPATH.replace("'", '"')
+if SONARRANIMEPATH.find('"') != -1:
+    SONARRANIMEPATH = SONARRANIMEPATH.replace('"', '')
 ANILIST_USERNAME = os.getenv('ANILIST_USERNAME')
 MONITOR = os.getenv('MONITOR')
 if os.getenv('RETRY') == 'True':
@@ -34,6 +39,11 @@ else:
 RADARRURL = os.getenv('RADARRURL')
 RADARRAPIKEY = os.getenv('RADARRAPIKEY')
 RADARRANIMEPATH = os.getenv('RADARRANIMEPATH')
+#If path contains single or double quotes, remove them
+if RADARRANIMEPATH.find("'") != -1:
+    RADARRANIMEPATH = RADARRANIMEPATH.replace("'", '"')
+if RADARRANIMEPATH.find('"') != -1:
+    RADARRANIMEPATH = RADARRANIMEPATH.replace('"', '')
 
 logPath = configPath + 'log/'
 mappingFile = configPath + 'mapping.csv'
