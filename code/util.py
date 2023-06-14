@@ -16,28 +16,36 @@ else:
     configPath = '/config/'
 
 load_dotenv('config/.env')
-SONARRURL = os.getenv('SONARRURL')
-SONARRAPIKEY = os.getenv('SONARRAPIKEY')
-SONARRANIMEPATH = os.getenv('SONARRANIMEPATH')
-#If path contains single or double quotes, remove them
-if SONARRANIMEPATH.find("'") != -1:
-    SONARRANIMEPATH = SONARRANIMEPATH.replace("'", '"')
-if SONARRANIMEPATH.find('"') != -1:
-    SONARRANIMEPATH = SONARRANIMEPATH.replace('"', '')
 ANILIST_USERNAME = os.getenv('ANILIST_USERNAME')
 MONITOR = os.getenv('MONITOR')
-RETRY = os.getenv('RETRY').capitalize()
+RETRY = os.getenv('RETRY')
+if RETRY is not None:
+    RETRY = RETRY.capitalize()
 RESPECTFUL_ADDING = os.getenv('RESPECTFUL_ADDING')
 AUTO_FILL_MAPPING = os.getenv('AUTO_FILL_MAPPING')
-LOGGING = os.getenv('LOGGING').capitalize()
+LOGGING = os.getenv('LOGGING')
+if LOGGING is not None:
+    LOGGING = LOGGING.capitalize()
+
+SONARRURL = os.getenv('SONARRURL')
+if SONARRURL is not None:
+    SONARRAPIKEY = os.getenv('SONARRAPIKEY')
+    SONARRANIMEPATH = os.getenv('SONARRANIMEPATH')
+    #If path contains single or double quotes, remove them
+    if SONARRANIMEPATH.find("'") != -1:
+        SONARRANIMEPATH = SONARRANIMEPATH.replace("'", '"')
+    if SONARRANIMEPATH.find('"') != -1:
+        SONARRANIMEPATH = SONARRANIMEPATH.replace('"', '')
+
 RADARRURL = os.getenv('RADARRURL')
-RADARRAPIKEY = os.getenv('RADARRAPIKEY')
-RADARRANIMEPATH = os.getenv('RADARRANIMEPATH')
-#If path contains single or double quotes, remove them
-if RADARRANIMEPATH.find("'") != -1:
-    RADARRANIMEPATH = RADARRANIMEPATH.replace("'", '"')
-if RADARRANIMEPATH.find('"') != -1:
-    RADARRANIMEPATH = RADARRANIMEPATH.replace('"', '')
+if RADARRURL is not None:
+    RADARRAPIKEY = os.getenv('RADARRAPIKEY')
+    RADARRANIMEPATH = os.getenv('RADARRANIMEPATH')
+    #If path contains single or double quotes, remove them
+    if RADARRANIMEPATH.find("'") != -1:
+        RADARRANIMEPATH = RADARRANIMEPATH.replace("'", '"')
+    if RADARRANIMEPATH.find('"') != -1:
+        RADARRANIMEPATH = RADARRANIMEPATH.replace('"', '')
 
 logPath = configPath + 'log/'
 mappingFile = configPath + 'mapping.csv'
