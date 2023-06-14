@@ -131,13 +131,10 @@ def indexRadarrList(radarr, newMovies, mapping, radarrList):
             if map['tmdb_or_tvdb_Id'] in [i['tmdbId'] for i in radarrList]:
                 if RESPECTFUL_ADDING:
                     if LOGGING == True:
-                        pr("Only looking respectfully at existing entry for " + show['title'])
+                        pr("Only looking respectfully at existing entry for " + movie['title'])
                 else:
                     # mapped movie was already in radarr
-                    result = radarrList[[i['tmdbId']
-                                        for i in radarrList].index(map['tmdb_or_tvdb_Id'])]
-                    result['anilistId'] = map['anilistId']
-                    result['season'] = map['season']
+                    pr("Movie " + movie['title'] + " already in Radarr")
             else:
                 # Searching for mapped movie by tmdbId
                 result = search(radarr, "tmdb:" + str(map['tmdb_or_tvdb_Id']))
