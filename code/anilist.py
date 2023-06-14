@@ -67,7 +67,7 @@ def getAniList(username):
             titleYearListTV.append(convertToDict(entry))
         if entry['media']['format'] == "MOVIE":
             titleYearListMovies.append(convertToDict(entry))
-    if LOGGING == True:
+    if LOGGING == "True":
         dumpVar('aniListTV', titleYearListTV)
         dumpVar('aniListMovies', titleYearListMovies)
     return [titleYearListTV, titleYearListMovies]

@@ -26,7 +26,7 @@ services:
       - RADARRANIMEPATH=/path/to/anime              # Radarr Anime Path (ex: /movies/anime/)
       - ANILIST_USERNAME=yourname                   # AniList Username
       - MONITOR=all                                 # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) ALL IS RECOMMENDED, OTHER FLAGS MAY BE BROKEN
-      - RETRY=True                                  # If False, will write failed shows to ignore file to ignore next time. If True, will not ignore anything. If set to 'manual', will ignore entries in ignore, but not add more.
+      - RETRY=True                                  # If False, will write failed shows to ignore file to ignore next time. If True, will not ignore anything. If set to 'Manual', will ignore entries in ignore, but not add more.
       - INTERVAL=3600                               # Interval in seconds to run the script on (this will run it every hour)
     volumes:
       - '/etc/localtime:/etc/localtime:ro'
@@ -45,7 +45,7 @@ RADARRAPIKEY="yourapikey"                   # Radarr API Key
 RADARRANIMEPATH='/movies/Anime/'            # Path to Anime in Radarr
 ANILIST_USERNAME="yourusername"             # AniList Username
 MONITOR='all'                               # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) ALL IS RECOMMENDED, OTHER FLAGS MAY BE BROKEN
-RETRY=True                                  # If False, will write failed shows to ignore file to ignore next time. If True, will not ignore anything. If set to 'manual', will ignore entries in ignore, but not add more.
+RETRY=True                                  # If False, will write failed shows to ignore file to ignore next time. If True, will not ignore anything. If set to 'Manual', will ignore entries in ignore, but not add more.
 ```
 The config files will be saved to the `config` directory in the repo. You can edit the example files in that folder and remove the .example suffix to use them.
 
@@ -60,7 +60,7 @@ SONARRAPIKEY="yourapikey"                   # Radarr API Key - Needed if using S
 RADARRURL="http://192.168.1.1:7878/"        # Sonarr URL - Optional
 RADARRAPIKEY="yourapikey"                   # Sonarr API Key - Needed if using Radarr
 MONITOR='all'                               # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) ALL IS RECOMMENDED, OTHER FLAGS MAY BE BROKEN
-RETRY=True                                  # If False, will write failed shows to ignore file to ignore next time. If True, will not ignore anything. If set to 'manual', will ignore entries in ignore, but not add more.
+RETRY=True                                  # If False, will write failed shows to ignore file to ignore next time. If True, will not ignore anything. If set to 'Manual', will ignore entries in ignore, but not add more.
 INTERVAL=3600                               # Interval in seconds to run the script on (this will run it every hour) - Necessary in containers
 LOGGING=False                               # If True, will add extra output for debug purposes! Also generates a logging folder (config/log)
 RESPECTFUL_ADDING                           # If True, will not even touch a series if it's already listed in the application

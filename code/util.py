@@ -26,16 +26,10 @@ if SONARRANIMEPATH.find('"') != -1:
     SONARRANIMEPATH = SONARRANIMEPATH.replace('"', '')
 ANILIST_USERNAME = os.getenv('ANILIST_USERNAME')
 MONITOR = os.getenv('MONITOR')
-if os.getenv('RETRY') == 'True':
-    RETRY = True
-else:
-    RETRY = False
+RETRY = os.getenv('RETRY').capitalize()
 RESPECTFUL_ADDING = os.getenv('RESPECTFUL_ADDING')
 AUTO_FILL_MAPPING = os.getenv('AUTO_FILL_MAPPING')
-if os.getenv('LOGGING') == 'True':
-    LOGGING = True
-else:
-    LOGGING = os.getenv('LOGGING')
+LOGGING = os.getenv('LOGGING').capitalize()
 RADARRURL = os.getenv('RADARRURL')
 RADARRAPIKEY = os.getenv('RADARRAPIKEY')
 RADARRANIMEPATH = os.getenv('RADARRANIMEPATH')
@@ -51,7 +45,7 @@ mappingFile = configPath + 'mapping.csv'
 
 def pr(string):
     print(string)
-    if LOGGING == True:
+    if LOGGING == "True":
         # create log folder
         if not os.path.exists(logPath):
             os.makedirs(logPath)
@@ -154,7 +148,7 @@ def dumpVar(name, var):
 
 
 def addMapping(item):
-    if LOGGING == True:
+    if LOGGING == "True":
         pr("Trying to map this item...")
     mapping = loadMappingList()
     # if mapping['anilistId] isn't already in mapping list
@@ -190,19 +184,19 @@ def animeMatch(result, show):
         if title is None:
             continue
         if cleanText(title) == cleanText(result['title']):
-            if LOGGING == True:
+            if LOGGING == "True":
                 pr("Matched in title: " + title + " & " + result['title'])
             matching += 1
             break
         else:
-            if LOGGING == True:
+            if LOGGING == "True":
                 pr("DID NOT match in title: " + title + " & " + result['title'])
     if show['year'] == result['year']:
-        if LOGGING == True:
+        if LOGGING == "True":
             pr("Matched in year: " + str(show['year']))
         matching += 1
     else:
-        if LOGGING == True:
+        if LOGGING == "True":
             pr("DID NOT matched in year: " + str(show['year']) + " & " + str(result['year']))
     # List of all keys we've investigated already
     investigated = ['year', 'title']
@@ -219,11 +213,11 @@ def animeMatch(result, show):
                 if first == second:
                     matching += 1
     if matching >= 2:
-        if LOGGING == True:
+        if LOGGING == "True":
             pr("Matched on two or more! It is: " + str(result['tvdbId']))
         return result['tvdbId']
     else:
-        if LOGGING == True:
+        if LOGGING == "True":
             pr("Failed to match...")
         return False
 
