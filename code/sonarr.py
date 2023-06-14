@@ -208,7 +208,7 @@ def indexSonarrList(sonarr, newShows, mapping, sonarrList):
                 result = search(sonarr, "tvdb:" + str(map['tmdb_or_tvdb_Id']))
                 result['season'] = map['season']
                 result['anilistId'] = show['anilistId']
-                if AUTO_FILL_MAPPING:
+                if AUTO_FILL_MAPPING is True:
                     addMapping(result)
             if result:
                 listToAdd.append(result)
@@ -225,7 +225,7 @@ def indexSonarrList(sonarr, newShows, mapping, sonarrList):
                     result['anilistId'] = show['anilistId']
                     listToAdd.append(result)
                     # If there's no existing mapping, and we find one, check if we should map it now.
-                    if AUTO_FILL_MAPPING:
+                    if AUTO_FILL_MAPPING is True:
                         addMapping(result)
             else:
                 pr("ID not received from sonarr for " + show['title'])

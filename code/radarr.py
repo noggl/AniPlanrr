@@ -73,7 +73,7 @@ def addMovie(radarr, movie):
     # If resposne is 201, print success
     if response.status_code == 201:
         pr(movie['title'] + " was added to Radarr")
-        if AUTO_FILL_MAPPING:
+        if AUTO_FILL_MAPPING is True:
             # write title, anilistId, tmdbId to mapping
             addMapping(movie)
     else:
