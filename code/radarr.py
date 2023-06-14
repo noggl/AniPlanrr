@@ -77,7 +77,7 @@ def addMovie(radarr, movie):
             # write title, anilistId, tmdbId to mapping
             addMapping(movie)
     else:
-        pr("ERRROR: " + movie['title'] + " could not be added to Radarr")
+        pr("ERROR: " + movie['title'] + " could not be added to Radarr")
         if LOGGING:
             dumpVar('addMovieResponse', response.json())
 

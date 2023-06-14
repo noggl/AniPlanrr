@@ -103,7 +103,7 @@ def addShow(sonarr, show):
         pr(show['title'] + " was added to Sonarr")
         dumpVar('addShowResponse', response.json())
     else:
-        pr("ERRROR: " + show['title'] + " could not be added to Sonarr")
+        pr("ERROR: " + show['title'] + " could not be added to Sonarr")
         # write response to file
         if LOGGING:
             dumpVar('addShowResponse', response.json())
@@ -154,7 +154,7 @@ def updateSonarrSeason(sonarr, show):
         pr(show['title'] + " season " +
            str(show['season']) + " was added to Sonarr")
     else:
-        pr("ERRROR: " + show['title'] + " season " +
+        pr("ERROR: " + show['title'] + " season " +
            str(show['season']) + " could not be added to Sonarr")
         # write response to file
         if LOGGING:
