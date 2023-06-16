@@ -32,7 +32,6 @@ def runSonarr(sonarr, aniList):
         pr("Found " + str(len(newShowList)) + " new shows to add to Sonarr")
     
     if SONARRIMPORTER:
-        genIndex()
         finalForm = updateSonarrImport(sonarr, newShowList, sonarrList)
         content = json.dumps(finalForm, sort_keys=True, indent=2)
         with open(webPath + 'sonarr', 'w') as f:
@@ -59,6 +58,8 @@ def runRadarr(radarr, aniMovieList):
     sendToRadarr(radarr, newMoviesList, radarrList)
 
 def main():
+    if SONARRIMPORTER:
+        genIndex()
     if LOGGING == "True":
         pr("Getting AniList for " + ANILIST_USERNAME)
     [aniList, aniMovieList] = getAniList(str(ANILIST_USERNAME))
