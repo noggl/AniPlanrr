@@ -31,7 +31,7 @@ def setupSonarr(SONARRURL, SONARRAPIKEY):
             dumpVar('failedSonarrResponse', response.json())
         return False
     answer = response.json()
-    if answer['appName'] == 'Sonarr' or answer['instaneName'] == 'Sonarr':
+    if answer['appName'] == 'Sonarr' or answer['instanceName'] == 'Sonarr':
         if LOGGING == "True":
             pr("Confirmed Sonarr instance URL and Key, returning information!")
     else:
@@ -102,7 +102,7 @@ def addShow(sonarr, show):
         dumpVar('addShowShow', show)
     response = requests.post(
         sonarr['APIURL'] + '/series?' + sonarr['APIKEY'], json=stripExtraKeys(show))
-    # If resposne is 201, print success
+    # If response is 201, print success
     if response.status_code == 201:
         pr(show['title'] + " was added to Sonarr")
         if LOGGING == "True":
@@ -146,7 +146,7 @@ def getSonarrTagId(sonarr, tag_name):
         'label': tag_name
     }
     response = requests.get(sonarr['APIURL'] + '/tag?' + sonarr['APIKEY'])
-    # get id of tag labeled "fronAniList"
+    # get id of tag labeled "fromAniList"
     tag_id = None
     for i in response.json():
         if i['label'] == tag_name.lower():
@@ -169,7 +169,7 @@ def updateSonarrSeason(sonarr, show):
                           "searchForMissingEpisodes": 'true'}
     response = requests.put(
         sonarr['APIURL'] + '/series/' + str(show['id']) + '?' + sonarr['APIKEY'], json=stripExtraKeys(show))
-    # If resposne is 201, print success
+    # If response is 201, print success
     if response.status_code == 202:
         pr(show['title'] + " season " +
            str(show['season']) + " was added to Sonarr")
