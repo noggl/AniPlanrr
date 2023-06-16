@@ -253,3 +253,17 @@ def sendToSonarr(sonarr, listToAdd, sonarrList):
     # send each item in listToAdd to add_show_to_sonarr
     for show in listToAdd:
         addShow(sonarr, show)
+
+def updateSonarrImport(sonarr, listToAdd, sonarrList):
+    # Create a form that will be used to fill the hosted list
+    finalForm = []
+    entry = {
+        'tvdbId': '0'
+    }
+    for show in listToAdd:
+        if show['tvdbId']:
+            entry['tvdbId'] = str(show['tvdbId'])
+            finalForm.append(entry)
+        else:
+            pr("Error: This show has no tvdbId?! " + show['title'])
+    return finalForm

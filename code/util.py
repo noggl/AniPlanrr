@@ -21,6 +21,7 @@ MONITOR = os.getenv('MONITOR')
 RETRY = os.getenv('RETRY')
 if RETRY is not None:
     RETRY = RETRY.capitalize()
+SONARRIMPORTER = os.getenv('SONARRIMPORTER')
 RESPECTFUL_ADDING = os.getenv('RESPECTFUL_ADDING')
 AUTO_FILL_MAPPING = os.getenv('AUTO_FILL_MAPPING')
 LOGGING = os.getenv('LOGGING')
@@ -48,6 +49,7 @@ if RADARRURL is not None:
         RADARRANIMEPATH = RADARRANIMEPATH.replace('"', '')
 
 logPath = configPath + 'log/'
+webPath = configPath + 'list/'
 mappingFile = configPath + 'mapping.csv'
 
 
@@ -258,3 +260,22 @@ def diffDicts(dict1, dict2):
         if not any(compareDicts(i, j) for j in dict2):
             diff.append(i)
     return diff
+
+def genIndex():
+    if not os.path.exists(webPath):
+        os.makedirs(webPath)
+    content = """
+    <html>
+        <head>
+            <title>AniPlanrr</title>
+        </head>
+        <body>
+            <h1>AniPlanrr</h1>
+            <p>There are sub-sites, based on your config option, at /sonarr and /radarr which host the import lists.</p>
+            <p>Also, don't expose this to the internet!</p>
+        </body>
+    </html>
+    """
+    with open(webPath + 'index.html', 'w') as f:
+        f.write(content)
+    return True

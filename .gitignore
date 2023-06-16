@@ -2,6 +2,7 @@ docker-compose.yaml
 
 # Cache directories
 config/log/*
+config/list/*
 code/__pycache__/*
 
 # Known configs

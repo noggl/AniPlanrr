@@ -1,4 +1,5 @@
 #!/bin/sh
+nginx -c /code/nginx.conf
 while true
 do
   echo "Running aniplanrr.py"

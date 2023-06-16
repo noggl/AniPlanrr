@@ -31,8 +31,19 @@ def runSonarr(sonarr, aniList):
     if LOGGING == "True":
         pr("Found " + str(len(newShowList)) + " new shows to add to Sonarr")
     
-    # send each item in newShows to get_id_from_sonarr
-    sendToSonarr(sonarr, newShowList, sonarrList)
+    if SONARRIMPORTER:
+        genIndex()
+        finalForm = updateSonarrImport(sonarr, newShowList, sonarrList)
+        content = json.dumps(finalForm, sort_keys=True, indent=2)
+        with open(webPath + 'sonarr', 'w') as f:
+            f.write(content)
+        pr("Wrote sonarr")
+        params = {'name': 'ImportListSync'}
+        requests.post(sonarr['APIURL'] + '/command/?' + sonarr['APIKEY'], json=params)
+        pr("Sent command to Sonarr to import new shows")
+    else:
+        # send each item in newShows to get_id_from_sonarr
+        sendToSonarr(sonarr, newShowList, sonarrList)
 
 def runRadarr(radarr, aniMovieList):
     if LOGGING == "True":
