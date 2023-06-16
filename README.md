@@ -10,8 +10,8 @@ It is highly recommended to use [RickDB/PlexMALSync](https://github.com/RickDB/P
 ## Running in Docker (Recommended)
 You can use the included docker-compose file to run the script in a docker container.
 See [Env](#env) for more variables.
-```
-version: '3.7'
+```docker
+version: '3.8'
 services:
   aniplanrr:
     container_name: aniplanrr
@@ -65,6 +65,7 @@ INTERVAL=3600                               # Interval in seconds to run the scr
 LOGGING=False                               # If True, will add extra output for debug purposes! Also generates a logging folder (config/log)
 RESPECTFUL_ADDING                           # If True, will not even touch a series if it's already listed in the application
 AUTO_FILL_MAPPING                           # Allow the program to write mapping entries - See mapping down under config files
+SONARRIMPORTER=True                         # If true, hosting on port 8080 on /sonarr will display an import list
 ```
 
 ## Config Files
