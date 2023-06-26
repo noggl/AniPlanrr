@@ -257,10 +257,10 @@ def sendToSonarr(sonarr, listToAdd, sonarrList):
 def updateSonarrImport(sonarr, listToAdd, sonarrList):
     # Create a form that will be used to fill the hosted list
     finalForm = []
-    entry = {
-        'tvdbId': '0'
-    }
     for show in listToAdd:
+        entry = {
+            'tvdbId': '0'
+        }
         if show['tvdbId']:
             entry['tvdbId'] = str(show['tvdbId'])
             finalForm.append(entry)
