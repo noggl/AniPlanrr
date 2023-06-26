@@ -23,10 +23,11 @@ def runSonarr(sonarr, aniList):
         pr("Sonarr List is empty")
         #stop execution
         return False
+
     # Remove obvious matches
     newShowList = diffDicts(aniList, sonarrList)
+
     # Remove less obvious matches via IDs/Mapping
-    
     newShowList = indexSonarrList(sonarr, newShowList, mapping, sonarrList)
     if LOGGING == "True":
         pr("Found " + str(len(newShowList)) + " new shows to add to Sonarr")
