@@ -23,16 +23,27 @@ def runSonarr(sonarr, aniList):
         pr("Sonarr List is empty")
         #stop execution
         return False
+
     # Remove obvious matches
     newShowList = diffDicts(aniList, sonarrList)
+
     # Remove less obvious matches via IDs/Mapping
-    
     newShowList = indexSonarrList(sonarr, newShowList, mapping, sonarrList)
     if LOGGING == "True":
         pr("Found " + str(len(newShowList)) + " new shows to add to Sonarr")
     
-    # send each item in newShows to get_id_from_sonarr
-    sendToSonarr(sonarr, newShowList, sonarrList)
+    if SONARRIMPORTER:
+        finalForm = updateSonarrImport(sonarr, newShowList, sonarrList)
+        content = json.dumps(finalForm, sort_keys=True, indent=2)
+        with open(webPath + 'sonarr', 'w') as f:
+            f.write(content)
+        pr("Wrote sonarr")
+        params = {'name': 'ImportListSync'}
+        requests.post(sonarr['APIURL'] + '/command/?' + sonarr['APIKEY'], json=params)
+        pr("Sent command to Sonarr to import new shows")
+    else:
+        # send each item in newShows to get_id_from_sonarr
+        sendToSonarr(sonarr, newShowList, sonarrList)
 
 def runRadarr(radarr, aniMovieList):
     if LOGGING == "True":
@@ -48,6 +59,8 @@ def runRadarr(radarr, aniMovieList):
     sendToRadarr(radarr, newMoviesList, radarrList)
 
 def main():
+    if SONARRIMPORTER:
+        genIndex()
     if LOGGING == "True":
         pr("Getting AniList for " + ANILIST_USERNAME)
     [aniList, aniMovieList] = getAniList(str(ANILIST_USERNAME))

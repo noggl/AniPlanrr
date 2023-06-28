@@ -30,7 +30,7 @@ def setupRadarr(RADARRURL, RADARRAPIKEY):
             dumpVar('failedradarrResponse', response.json())
         return False
     answer = response.json()
-    if answer['appName'] == 'Radarr' or answer['instaneName'] == 'Radarr':
+    if answer['appName'] == 'Radarr' or answer['instanceName'] == 'Radarr':
         if LOGGING == "True":
             pr("Confirmed Radarr instance URL and Key, returning information!")
     else:
@@ -70,7 +70,7 @@ def addMovie(radarr, movie):
         # write params to file
         dumpVar('addMovieParams', movie)
     response = requests.post(radarr['APIURL'] + '/movie?' + radarr['APIKEY'], json=stripExtraKeys(movie))
-    # If resposne is 201, print success
+    # If response is 201, print success
     if response.status_code == 201:
         pr(movie['title'] + " was added to Radarr")
         if AUTO_FILL_MAPPING is True:
@@ -102,7 +102,7 @@ def getRadarrTagId(radarr, tag_name):
     }
     response = requests.get(radarr['APIURL'] + '/tag?' + radarr['APIKEY'])
     tag_id = None
-    # get id of tag labeled "fronAniList"
+    # get id of tag labeled "fromAniList"
     # find id in response.json() where label = tag_name
     for i in response.json():
         if i['label'] == tag_name.lower():
