@@ -7,6 +7,15 @@ This script will add any shows from your AniList planning list to Sonarr and Rad
 It is highly recommended to use [RickDB/PlexMALSync](https://github.com/RickDB/PlexMALSync) or [vosmiic/jellyfin-ani-sync](https://github.com/vosmiic/jellyfin-ani-sync) to move watched shows to your watching/completed list.
 
 # Getting Started
+As of June 28th, 2023 there are 2 modes for importing shows to sonarr. The older method is to add them via the API, and the newer method is to use the Sonarr Importer. The Sonarr Importer is only available in Sonarr V4, and integrates more cleanly with Sonarr. If you are using Sonarr V3, you will need to use the API method. If you are using Sonarr V4, you can use either method. 
+
+### Importer Advantages
+The Importer method allows you to use some settings that are currently hardcoded in the API method, such as the quality/language profile or specific tags (the api method uses a hard coded "fromanilist" tag). It also allows you to import shows into Sonarr without having to give AniPlanrr API access to Sonarr.
+
+### API Method Advantages
+The API Method adds shows as soon as AniPlanrr discovers them, and allows only certain seasons to be added, while the Sonarr Importer system will import the list every 6 hours and will monitor the seasons as you've set them on the Import List page in Sonarr.
+
+
 ## Running in Docker (Recommended)
 You can use the included docker-compose file to run the script in a docker container.
 See [Env](#env) for more variables.
