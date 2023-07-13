@@ -1,10 +1,13 @@
 # AniPlanrr
 
-Sync an AniList user's "Plan to Watch" list to Sonarr and Radarr.
+Sync an AniList user's "Plan to Watch" list to Sonarr and Radarr. 
+
+<a href="https://www.buymeacoffee.com/noggl" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 25px !important;width: 110px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
 This script will add any shows from your AniList planning list to Sonarr and Radarr. It will also update any shows that are already in Sonarr/Radarr to match the AniList planning list. This script will not remove shows from Sonarr/Radarr that are not in your AniList planning list, nor will it add shows to your AniList planning list.
 
 It is highly recommended to use [RickDB/PlexMALSync](https://github.com/RickDB/PlexMALSync) or [vosmiic/jellyfin-ani-sync](https://github.com/vosmiic/jellyfin-ani-sync) to move watched shows to your watching/completed list.
+
 
 # Getting Started
 As of June 28th, 2023 there are 2 modes for importing shows to sonarr. The older method is to add them via the API, and the newer method is to use the Sonarr Importer. The Sonarr Importer is only available in Sonarr V4, and integrates more cleanly with Sonarr. If you are using Sonarr V3, you will need to use the API method. If you are using Sonarr V4, you can use either method. 
