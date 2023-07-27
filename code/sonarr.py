@@ -201,17 +201,19 @@ def indexSonarrList(sonarr, newShows, mapping, sonarrList):
                     # mapped show was already in sonarr
                     result = sonarrList[[i['tvdbId']
                                         for i in sonarrList].index(map['tmdb_or_tvdb_Id'])]
-                    result['anilistId'] = map['anilistId']
-                    result['season'] = map['season']
             else:
                 # Searching for mapped show by tvdbId
                 result = search(sonarr, "tvdb:" + str(map['tmdb_or_tvdb_Id']))
-                result['season'] = map['season']
-                result['anilistId'] = show['anilistId']
-                if AUTO_FILL_MAPPING is True:
+                if AUTO_FILL_MAPPING is True and result:
                     addMapping(result)
+                # If there isn't a result, there's likely a type mismatch or mapping error
+                if not result:
+                    pr("Error: " + show['title'] + " is mapped to TVDB ID " +
+                       str(map['tmdb_or_tvdb_Id']) + ", but no show was found with that ID in Sonarr")
             if result:
                 listToAdd.append(result)
+                result['season'] = map['season']
+                result['anilistId'] = show['anilistId']
         else:
             pr("Searching Sonarr for " + show['title'] + ' by title and year')
             result = search(sonarr, show['titles'], str(show['year']))
