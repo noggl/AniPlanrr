@@ -77,7 +77,7 @@ RADARRAPIKEY="yourapikey"                   # Sonarr API Key - Needed if using R
 MONITOR='all'                               # Monitor Type (all, future, missing, existing, firstSeason, latestSeason, pilot) ALL IS RECOMMENDED, OTHER FLAGS MAY BE BROKEN
 RETRY=True                                  # If False, will write failed shows to ignore file to ignore next time. If True, will not ignore anything. If set to 'Manual', will ignore entries in ignore, but not add more.
 INTERVAL=3600                               # Interval in seconds to run the script on (this will run it every hour) - Necessary in containers
-LOGGING=False                               # If True, will add extra output for debug purposes! Also generates a logging folder (config/log)
+LOGGING=False                               # Can be set to Info, Debug, or False. False will not log anything, Info will log basic info, and Debug will log everything
 RESPECTFUL_ADDING                           # If True, will not even touch a series if it's already listed in the application
 AUTO_FILL_MAPPING                           # Allow the program to write mapping entries - See mapping down under config files
 SONARRIMPORTER=True                         # If true, hosting on port 8080 on /sonarr will display an import list

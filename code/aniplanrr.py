@@ -4,8 +4,8 @@ from radarr import *
 from sonarr import *
 
 # if logging is true
-if LOGGING == "True":
-    pr("Logging is enabled")
+if LOGGING != "False":
+    pr("Logging is " + LOGGING)
 else:
     pr("Logging is disabled")
 
@@ -16,7 +16,7 @@ if RETRY == "False" or RETRY == "Manual":
 pr("Loaded " + str(len(mapping)) + " items to map")
 
 def runSonarr(sonarr, aniList):
-    if LOGGING == "True":
+    if LOGGING != "False":
         pr("Getting Sonarr List")
     sonarrList = getSonarrList(sonarr)
     if sonarrList is None:
@@ -29,7 +29,7 @@ def runSonarr(sonarr, aniList):
 
     # Remove less obvious matches via IDs/Mapping
     newShowList = indexSonarrList(sonarr, newShowList, mapping, sonarrList)
-    if LOGGING == "True":
+    if LOGGING != "False":
         pr("Found " + str(len(newShowList)) + " new shows to add to Sonarr")
     
     if SONARRIMPORTER:
@@ -46,7 +46,7 @@ def runSonarr(sonarr, aniList):
         sendToSonarr(sonarr, newShowList, sonarrList)
 
 def runRadarr(radarr, aniMovieList):
-    if LOGGING == "True":
+    if LOGGING != "False":
         pr("Getting Radarr List")
     radarrList = getRadarrList(radarr)
     if radarrList is None:
@@ -54,14 +54,14 @@ def runRadarr(radarr, aniMovieList):
         return False
     newMoviesList = diffDicts(aniMovieList, radarrList)
     newMoviesList = indexRadarrList(radarr, newMoviesList, mapping, radarrList)
-    if LOGGING == "True":
+    if LOGGING != "False":
         pr("Found " + str(len(newMoviesList)) + " new movies to add to Radarr")
     sendToRadarr(radarr, newMoviesList, radarrList)
 
 def main():
     if SONARRIMPORTER:
         genIndex()
-    if LOGGING == "True":
+    if LOGGING != "False":
         pr("Getting AniList for " + ANILIST_USERNAME)
     [aniList, aniMovieList] = getAniList(str(ANILIST_USERNAME))
     # filter anilist if anilist[2] is in ignorelist
