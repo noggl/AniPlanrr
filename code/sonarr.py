@@ -249,8 +249,8 @@ def sendToSonarr(sonarr, listToAdd, sonarrList):
             if show['season'] not in [i['seasonNumber'] for i in show['seasons'] if i['monitored']]:
                 updateSonarrSeason(sonarr, show)
             else:
-                pr("Season " + str(show['season']) +
-                    " is already monitored for " + show['title'] + ", skipping")
+                if LOGGING != "False":
+                    pr("Season " + str(show['season']) + " is already monitored for " + show['title'] + ", skipping")
             # remove show from listToAdd
             listToAdd = [x for x in listToAdd if not x == show]
     # send each item in listToAdd to add_show_to_sonarr
@@ -268,5 +268,5 @@ def updateSonarrImport(sonarr, listToAdd, sonarrList):
             entry['tvdbId'] = str(show['tvdbId'])
             finalForm.append(entry)
         else:
-            pr("Error: This show has no tvdbId?! " + show['title'])
+            pr("ERROR: This show has no tvdbId! " + show['title'])
     return finalForm
