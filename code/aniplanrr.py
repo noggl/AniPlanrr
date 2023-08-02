@@ -37,7 +37,7 @@ def runSonarr(sonarr, aniList):
         content = json.dumps(finalForm, sort_keys=True, indent=2)
         with open(webPath + 'sonarr', 'w') as f:
             f.write(content)
-        pr("Wrote sonarr")
+        pr("Wrote webpage for sonarr")
         params = {'name': 'ImportListSync'}
         requests.post(sonarr['APIURL'] + '/command/?' + sonarr['APIKEY'], json=params)
         pr("Sent command to Sonarr to import new shows")
@@ -61,8 +61,7 @@ def runRadarr(radarr, aniMovieList):
 def main():
     if SONARRIMPORTER:
         genIndex()
-    if LOGGING != "False":
-        pr("Getting AniList for " + ANILIST_USERNAME)
+    pr("Getting AniList for " + ANILIST_USERNAME)
     [aniList, aniMovieList] = getAniList(str(ANILIST_USERNAME))
     # filter anilist if anilist[2] is in ignorelist
     if RETRY == "False" or RETRY == "Manual":

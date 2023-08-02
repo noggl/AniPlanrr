@@ -71,7 +71,8 @@ def pr(string):
 def loadIgnoreList():
     # if ignore.csv doesn't exist, create it
     if not os.path.exists(configPath + 'ignore.csv'):
-        pr("ignore.csv doesn't exist, creating it")
+        if LOGGING != "False":
+            pr("ignore.csv doesn't exist, creating it")
         with open(configPath + 'ignore.csv', 'w') as f:
             f.write('')
     ignoreList = []
@@ -81,11 +82,11 @@ def loadIgnoreList():
             arr = row
             # check that file can be split into 4 parts
             if len(arr) != 2:
-                pr("Error: ignore.csv is not formatted correctly")
+                pr("ERROR: ignore.csv is not formatted correctly")
             else:
                 # check that id is an int
                 if not arr[1].isdigit():
-                    pr("Error: ignore.csv is not formatted correctly")
+                    pr("ERROR: ignore.csv is not formatted correctly")
                 else:
                     ignoreList.append(int(arr[1]))
     return ignoreList
@@ -94,7 +95,8 @@ def loadIgnoreList():
 def loadMappingList():
     # if mapping.csv doesn't exist, create it
     if not os.path.exists(mappingFile):
-        pr("mapping.csv doesn't exist, creating it")
+        if LOGGING != "False":
+            pr("mapping.csv doesn't exist, creating it")
         with open(mappingFile, 'w') as f:
             f.write('')
     mapping = []
@@ -104,11 +106,11 @@ def loadMappingList():
             arr = row
             # check that file can be split into 4 parts
             if len(arr) != 4:
-                pr("Error: mapping.csv is not formatted correctly")
+                pr("ERROR: mapping.csv is not formatted correctly")
             else:
                 # check that id is an int
                 if not arr[1].isdigit() or not arr[2].isdigit() or not arr[3].isdigit():
-                    pr("Error: mapping.csv is not formatted correctly")
+                    pr("ERROR: mapping.csv is not formatted correctly")
                 else:
                     mapping.append({'title': arr[0], 'anilistId': int(
                         arr[1]), 'tmdb_or_tvdb_Id': int(arr[2]), 'season': int(arr[3])})
@@ -124,7 +126,8 @@ def addToIgnoreList(title, id):
             writer = csv.writer(f, delimiter=';')
             writer.writerow([title, id])
     else:
-        pr(title + " is already in ignore list")
+        if LOGGING != "False":
+            pr(title + " is already in ignore list")
 
 
 def cleanText(string):
@@ -169,13 +172,13 @@ def addMapping(item):
         if 'tvdbId' in item:
             newId = item['tvdbId']
         if 'tmdb_or_tvdb_Id' not in item and 'tmdbId' not in item and 'tvdbId' not in item:
-            pr("Error: " + item['title'] + " has no tmdbId or tvdbId")
+            pr("ERROR: " + item['title'] + " has no tmdbId or tvdbId")
             return False
     if 'season' not in item:
         item['season'] = 1
         # add mapping to mapping.csv
-        pr("Adding mapping: " + item['title'] + " " + str(item['anilistId']) +
-            " " + str(newId) + " " + str(item['season']))
+        if LOGGING != "False":
+            pr("Adding mapping: " + item['title'] + " " + str(item['anilistId']) + " " + str(newId) + " " + str(item['season']))
         with open(mappingFile, 'a') as f:
             writer = csv.writer(f, delimiter=';')
             writer.writerow([item['title'], item['anilistId'],newId, item['season']])

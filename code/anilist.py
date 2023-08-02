@@ -49,7 +49,7 @@ def getAniList(username):
         url, json={'query': query, 'variables': variables})
     # if response is not 200, throw error
     if response.status_code != 200:
-        pr("Error: AniList response is not 200")
+        pr("ERROR: AniList response is not 200")
         return
     # filter down to entries of returned list
     entries = response.json(
@@ -57,7 +57,7 @@ def getAniList(username):
 
     # if name is not Planned, throw error
     if entries['name'] != "Planning":
-        pr("Error: List name is not Planning")
+        pr("ERROR: List name is not Planning")
         return
     # Create list of titles - year objects
     titleYearListTV = []
@@ -67,7 +67,7 @@ def getAniList(username):
             titleYearListTV.append(convertToDict(entry))
         if entry['media']['format'] == "MOVIE":
             titleYearListMovies.append(convertToDict(entry))
-    if LOGGING == "DEBUG":
+    if LOGGING == "Debug":
         dumpVar('aniListTV', titleYearListTV)
         dumpVar('aniListMovies', titleYearListMovies)
     return [titleYearListTV, titleYearListMovies]

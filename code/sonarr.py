@@ -15,17 +15,17 @@ def setupSonarr(SONARRURL, SONARRAPIKEY):
     # Test access
     response = requests.get(sonarr['URL'] + "/ping")
     if response.status_code != 200:
-        pr("Error: Can't ping Sonarr, response is" + str(response.status_code) + ", not 200. Is this the right URL? Is it up?")
+        pr("ERROR: Can't ping Sonarr, response is" + str(response.status_code) + ", not 200. Is this the right URL? Is it up?")
         if LOGGING == "Debug":
             # write response to file
             dumpVar('failedSonarrResponse', response.json())
         return False
     response = requests.get(sonarr['APIURL'] + '/system/status?' + sonarr['APIKEY'])
     if response.status_code == 401:
-        pr("Error: Sonarr says you are Unauthorized. Check API key? Error code: " + str(response.status_code))
+        pr("ERROR: Sonarr says you are Unauthorized. Check API key? Error code: " + str(response.status_code))
         return False
     elif response.status_code != 200:
-        pr("Error: Sonarr response is" + str(response.status_code) + ", not 200. This should never hit, if ping just succeeded. Is there filtering going on?")
+        pr("ERROR: Sonarr response is" + str(response.status_code) + ", not 200. This should never hit, if ping just succeeded. Is there filtering going on?")
         if LOGGING == "Debug":
             # write response to file
             dumpVar('failedSonarrResponse', response.json())
@@ -35,7 +35,7 @@ def setupSonarr(SONARRURL, SONARRAPIKEY):
         if LOGGING != "False":
             pr("Confirmed Sonarr instance URL and Key, returning information!")
     else:
-        pr("Information seems sketch, but if it works, it works. Returning key!")
+        pr("WARNING: Endpoint is not advertising as Sonarr, but it works. Returning key")
     return sonarr
 
     
@@ -44,7 +44,7 @@ def getSonarrList(sonarr):
     response = requests.get(sonarr['APIURL'] + "/series?" + sonarr['APIKEY'])
     # create list from response title and id
     if response.status_code != 200:
-        pr("Error: Sonarr response is" + str(response.status_code) + ", not 200")
+        pr("ERROR: Sonarr response is" + str(response.status_code) + ", not 200")
         if LOGGING == "Debug":
             # write response to file
             dumpVar('failedSonarrResponse', response.json())
@@ -62,17 +62,20 @@ def getSonarrList(sonarr):
 
 def setSeasons(show):
     if MONITOR == 'pilot' or MONITOR == 'firstSeason':
-        pr("Setting show to monitor only the first season")
+        if LOGGING != "False":
+            pr("Setting show to monitor only the first season")
         show['season'] = 1
     if 'season' not in show or show['season'] == 1:
-        pr('season not set, setting all seasons to monitored')
+        if LOGGING != "False":
+            pr('season not set, setting all seasons to monitored')
         for i in range(len(show['seasons'])):
             show['seasons'][i]['monitored'] = True
         show['addOptions'] = {'monitor': MONITOR,
                               "searchForMissingEpisodes": True}
         return show
     else:
-        pr('season set, only setting specifically requested season')
+        if LOGGING != "False":
+            pr('season set, only setting specifically requested season')
         for i in range(len(show['seasons'])):
             if int(show['seasons'][i]['seasonNumber']) == show['season']:
                 show['seasons'][i]['monitored'] = True
@@ -86,7 +89,8 @@ def setSeasons(show):
 
 
 def addShow(sonarr, show):
-    pr("Adding " + show['title'] + " to Sonarr")
+    if LOGGING != "False":
+        pr("Adding " + show['title'] + " to Sonarr")
     show = setSeasons(show)
     if getSonarrTagId(sonarr, "fromanilist") not in show['tags']:
         show['tags'].append(getSonarrTagId(sonarr, "fromanilist"))
@@ -129,15 +133,16 @@ def search(sonarr, strings, year=False):
         try:
             response = requests.get(url)
         except:
-            pr("Failed to search with url: " + url)
+            pr("ERROR: Failed to search with url: " + url)
         if LOGGING == "Debug":
             dumpVar('searchResponse', response.json())
         #if response is array return first element
         if len(response.json()) > 0:
             return response.json()[0]
         else:
-            pr("Error: Sonarr response is not an array")
-            dumpVar('failedSonarrResponse', response.json())
+            pr("ERROR: Sonarr response is not an array")
+            if LOGGING == "Debug":
+                dumpVar('failedSonarrResponse', response.json())
             continue
     return False
 
@@ -171,11 +176,10 @@ def updateSonarrSeason(sonarr, show):
         sonarr['APIURL'] + '/series/' + str(show['id']) + '?' + sonarr['APIKEY'], json=stripExtraKeys(show))
     # If response is 201, print success
     if response.status_code == 202:
-        pr(show['title'] + " season " +
-           str(show['season']) + " was added to Sonarr")
+        pr(show['title'] + " was updated to include season " + str(show['season']))
     else:
         pr("ERROR: " + show['title'] + " season " +
-           str(show['season']) + " could not be added to Sonarr")
+           str(show['season']) + " could not be monitored in Sonarr")
         # write response to file
         if LOGGING == "Debug":
             dumpVar('updateSeasonResponse', response.json())
@@ -190,8 +194,8 @@ def indexSonarrList(sonarr, newShows, mapping, sonarrList):
             result = False
             map = mapping[[i['anilistId']
                            for i in mapping].index(show['anilistId'])]
-            pr(show['title'] + " is mapped to " +
-               str(map['title']) + " season " + str(map['season']))
+            if LOGGING != "False":
+                pr(show['title'] + " is mapped to " + str(map['title']) + " season " + str(map['season']) + ", with ID: " + str(map['tmdb_or_tvdb_Id']))
             # First check if show is in sonarrList (and therefore already in sonarr)
             if map['tmdb_or_tvdb_Id'] in [i['tvdbId'] for i in sonarrList]:
                 if RESPECTFUL_ADDING:
@@ -208,7 +212,7 @@ def indexSonarrList(sonarr, newShows, mapping, sonarrList):
                     addMapping(result)
                 # If there isn't a result, there's likely a type mismatch or mapping error
                 if not result:
-                    pr("Error: " + show['title'] + " is mapped to TVDB ID " +
+                    pr("ERROR: " + show['title'] + " is mapped to TVDB ID " +
                        str(map['tmdb_or_tvdb_Id']) + ", but no show was found with that ID in Sonarr")
             if result:
                 listToAdd.append(result)
@@ -223,7 +227,7 @@ def indexSonarrList(sonarr, newShows, mapping, sonarrList):
                     dumpVar('sonarrSearch', result)
                 tvdbID = animeMatch(result, show)
                 if tvdbID:
-                    pr("ID received from sonarr for " + show['title'] + "with ID: " + str(tvdbID))
+                    pr("Success! " + show['title'] + "is ID: " + str(tvdbID))
                     result['anilistId'] = show['anilistId']
                     listToAdd.append(result)
                     # If there's no existing mapping, and we find one, check if we should map it now.
@@ -240,12 +244,9 @@ def sendToSonarr(sonarr, listToAdd, sonarrList):
     for show in listToAdd:
         # hopefully "profileId" of 0 means it's not been added. "path" is None might also be a good indicator
         if 'path' in show:
-            pr(show['title'] + " is already in Sonarr, checking season")
             if 'season' not in show:
                 show['season'] = 1
             if show['season'] not in [i['seasonNumber'] for i in show['seasons'] if i['monitored']]:
-                pr("Adding season " +
-                   str(show['season']) + " to " + show['title'])
                 updateSonarrSeason(sonarr, show)
             else:
                 pr("Season " + str(show['season']) +

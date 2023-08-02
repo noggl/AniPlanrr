@@ -14,17 +14,17 @@ def setupRadarr(RADARRURL, RADARRAPIKEY):
     # Test access
     response = requests.get(radarr['URL'] + "/ping")
     if response.status_code != 200:
-        pr("Error: Can't ping Radarr, response is" + str(response.status_code) + ", not 200. Is this the right URL? Is it up?")
+        pr("ERROR: Can't ping Radarr, response is" + str(response.status_code) + ", not 200. Is this the right URL? Is it up?")
         if LOGGING == "Debug":
             # write response to file
             dumpVar('failedRadarrResponse', response.json())
         return False
     response = requests.get(radarr['APIURL'] + '/system/status?' + radarr['APIKEY'])
     if response.status_code == 401:
-        pr("Error: Radarr says you are Unauthorized. Check API key? Error code: " + str(response.status_code))
+        pr("ERROR: Radarr says you are Unauthorized. Check API key? Error code: " + str(response.status_code))
         return False
     elif response.status_code != 200:
-        pr("Error: Radarr response is" + str(response.status_code) + ", not 200. This should never hit, if ping just succeeded. Is there filtering going on?")
+        pr("ERROR: Radarr response is" + str(response.status_code) + ", not 200. This should never hit if ping just succeeded. Is there filtering going on?")
         if LOGGING == "Debug":
             # write response to file
             dumpVar('failedradarrResponse', response.json())
@@ -34,7 +34,7 @@ def setupRadarr(RADARRURL, RADARRAPIKEY):
         if LOGGING != "False":
             pr("Confirmed Radarr instance URL and Key, returning information!")
     else:
-        pr("Information seems sketch, but if it works, it works. Returning key!")
+        pr("WARNING: Endpoint is not advertising as Radarr, but it works. Returning key")
     return radarr
 
 
@@ -42,7 +42,7 @@ def getRadarrList(radarr):
     response = requests.get(radarr['APIURL'] + "/movie?" + radarr['APIKEY'])
     # create list from response title and id
     if response.status_code != 200:
-        pr("Error: Radarr response is" + str(response.status_code) + ", not 200")
+        pr("ERROR: Radarr response is" + str(response.status_code) + ", not 200")
         if LOGGING == "Debug":
             # write response to file
             dumpVar('failedRadarrResponse', response.json())
@@ -58,7 +58,8 @@ def getRadarrList(radarr):
 
 
 def addMovie(radarr, movie):
-    pr("Adding " + movie['title'] + " to Radarr")
+    if LOGGING != "False":
+        pr("Adding " + movie['title'] + " to Radarr")
     if getRadarrTagId(radarr, "fromanilist") not in movie['tags']:
         movie['tags'].append(getRadarrTagId(radarr, "fromanilist"))
     # TODO, Don't use quality profile. Allow user to set them somehow
@@ -90,7 +91,7 @@ def search(radarr, string):
     if len(response.json()) > 0:
         return response.json()[0]
     else:
-        pr("Error: Radarr response is not array")
+        pr("ERROR: Radarr response is not array")
         if LOGGING == "Debug":
             dumpVar('failedRadarrResponse', response.json())
         return
